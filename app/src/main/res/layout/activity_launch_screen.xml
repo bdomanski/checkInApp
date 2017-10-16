@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    tools:context="com.example.brian.checkin.LaunchScreen"
+    android:baselineAligned="false"
+    android:orientation="vertical">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0"
+        android:orientation="horizontal">
+
+        <EditText
+            android:id="@+id/location_input"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginRight="8dp"
+            android:layout_weight="0.7"
+            android:hint="Location Name"
+            android:textSize="18sp" />
+
+        <Button
+            android:id="@+id/btn_query"
+            android:layout_width="0dp"
+            android:layout_height="48dp"
+            android:layout_marginBottom="8dp"
+            android:layout_weight="0.3"
+            android:text="Query"
+            android:textAppearance="@style/TextAppearance.AppCompat"
+            android:textColor="@color/colorPrimaryDark"
+            android:textSize="18sp" />
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:weightSum="1">
+
+        <TextView
+            android:id="@+id/output"
+            android:layout_width="323dp"
+            android:layout_height="451dp"
+            android:layout_gravity="bottom"
+            android:layout_marginBottom="8dp"
+            android:layout_marginLeft="8dp"
+            android:layout_marginRight="8dp"
+            android:textSize="18sp"
+            android:layout_weight="0.66" />
+    </LinearLayout>
+
+</LinearLayout>
