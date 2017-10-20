@@ -11,6 +11,8 @@ import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 import android.content.pm.PackageManager;
 import android.location.Location;
@@ -19,7 +21,6 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.os.Bundle;
-import android.widget.Button;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
@@ -27,7 +28,6 @@ import android.widget.Toast;
 import android.Manifest;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class LaunchScreen extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener {
@@ -36,11 +36,14 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     // location retrieved by the Fused Location Provider.
     private Location mLastKnownLocation;
 
+    FirebaseDatabase database = FirebaseDatabase.getInstance();
+    DatabaseReference userRef = database.getReference("userInput/");
+    DatabaseReference placesRef = database.getReference("placesAPI/");
+
     // Used for selecting the current place.
     private FusedLocationProviderClient mFusedLocationClient;
     private GoogleApiClient mGoogleApiClient;
 
-    private static final int M_MAX_ENTRIES = 5;
     private ArrayList<String> likelyPlaceNames = new ArrayList<>();
     private ArrayList<String> likelihoods = new ArrayList<>();
 
@@ -61,32 +64,32 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
         // Construct a PlaceDetectionClient.
         mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this);
-
-        Button button = (Button) findViewById(R.id.btn_query);
-        button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                EditText text_box = (EditText) findViewById(R.id.location_input);
-                TextView output_text = (TextView) findViewById(R.id.output);
-
-                String out;
-
-                out = "Nearby Places:\n";
-
-                getCurrentPlaces();
-
-                for(int i = 0; i < likelyPlaceNames.size() && i < likelihoods.size(); ++i) {
-                    out.concat(likelyPlaceNames.get(i) + ": " + likelihoods.get(i) + "\n");
-                }
-
-                output_text.setText(out);
-                System.out.println(out);
-            }
-        });
     }
 
-    private void getCurrentPlaces() {
+    public void onQueryClick(View v) {
+        EditText text_box = findViewById(R.id.location_input);
+        TextView output_text = findViewById(R.id.output);
+
+        userRef.push().setValue(text_box.getText().toString());
+
+        String out;
+
+        out = "Nearby Places:\n";
+
+        getCurrentPlaces();
+
+        for(int i = 0; i < likelyPlaceNames.size() && i < likelihoods.size(); ++i) {
+            out = out.concat(likelyPlaceNames.get(i) + ": " + likelihoods.get(i) + "\n");
+            placesRef.push().setValue(likelyPlaceNames.get(i));
+        }
+
+        output_text.setText(out);
+        System.out.println(out);
+    }
+
+    public void getCurrentPlaces() {
         if(ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            System.out.println("Permission Granted\n");
             mFusedLocationClient.getLastLocation()
                     .addOnSuccessListener(this, new OnSuccessListener<Location>() {
                         @Override
@@ -98,17 +101,22 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
                         }
                     });
         } else {
+            System.out.println("Permission Not Granted\n");
             ActivityCompat.requestPermissions(this, new String[] {Manifest.permission.ACCESS_FINE_LOCATION}, 123);
         }
-
+        System.out.println("To Place Likelihood buffer\n");
         PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi
                 .getCurrentPlace(mGoogleApiClient, null);
-        String places = "";
+
         placeResult.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
             @Override
             public void onResult(PlaceLikelihoodBuffer likelyPlaces) {
-
+                int num = likelyPlaces.getCount();
+                System.out.println("Likely places collected: ");
+                System.out.print(num);
+                System.out.println("\n");
                 for (PlaceLikelihood placeLikelihood : likelyPlaces) {
+                    System.out.println("A likely place\n");
                     String place = placeLikelihood.getPlace().toString();
                     String likelihood = Float.toString(placeLikelihood.getLikelihood());
                     likelyPlaceNames.add(place);
@@ -117,10 +125,6 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
                 likelyPlaces.release();
             }
         });
-    }
-
-    private Boolean permissionsGranted() {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED;
     }
 
     @Override

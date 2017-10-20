@@ -20,7 +20,7 @@
             android:layout_height="48dp"
             android:layout_marginRight="8dp"
             android:layout_weight="0.7"
-            android:hint="Location Name"
+            android:hint="Restaurant Name"
             android:textSize="18sp" />
 
         <Button
@@ -32,7 +32,8 @@
             android:text="Query"
             android:textAppearance="@style/TextAppearance.AppCompat"
             android:textColor="@color/colorPrimaryDark"
-            android:textSize="18sp" />
+            android:textSize="18sp"
+            android:onClick="onQueryClick" />
     </LinearLayout>
 
     <LinearLayout
