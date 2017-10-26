@@ -41,17 +41,13 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     // location retrieved by the Fused Location Provider.
     private Location mLastKnownLocation;
 
-    FirebaseDatabase database = FirebaseDatabase.getInstance();
-    DatabaseReference userRef = database.getReference("userInput/");
-    DatabaseReference placesRef = database.getReference("placesAPI/");
+    private FirebaseDatabase database = FirebaseDatabase.getInstance();
+    private final DatabaseReference userRef = database.getReference("userInput/");
+    private final DatabaseReference placesRef = database.getReference("placesAPI/");
 
     // Used for selecting the current place.
-    private FusedLocationProviderApi mFusedLocationApi;
     private GoogleApiClient mGoogleApiClient;
     private LocationRequest locationRequest;
-
-    private ArrayList<String> likelyPlaceNames = new ArrayList<>();
-    private ArrayList<String> likelihoods = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,10 +72,6 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
     public void onQueryClick(View v) {
         EditText text_box = findViewById(R.id.location_input);
-        String out;
-        TextView output_text = findViewById(R.id.output);
-
-        out = "Nearby Places:\n";
 
         userRef.push().setValue(text_box.getText().toString());
 
@@ -102,18 +94,33 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         placeResult.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
             @Override
             public void onResult(PlaceLikelihoodBuffer likelyPlaces) {
-                int num = likelyPlaces.getCount();
-                System.out.println("Likely places collected: ");
-                System.out.print(num);
-                System.out.println("\n");
 
+                // Debug info printed to console
                 Status status = likelyPlaces.getStatus();
                 System.out.println(status.isSuccess());
                 System.out.println(status.getStatusCode());
                 System.out.println(status.getStatusMessage());
                 System.out.println(status.getStatus());
 
+                TextView output = findViewById(R.id.output);
+                String name;
+                float likelihood;
+
+                // Print depending on number of places
+                output.setText(likelyPlaces.getCount() > 0 ? "Nearby Places:\n" : "No Nearby Places\n");
+
+                // Print out
                 for (PlaceLikelihood placeLikelihood : likelyPlaces) {
+                    name = placeLikelihood.getPlace().getName().toString();
+                    likelihood = placeLikelihood.getLikelihood();
+
+                    if(likelihood > 0) {
+                        output.append(name + ": " + likelihood);
+                        placesRef.child("Name").push().setValue(name);
+                        placesRef.child("Likelihood").push().setValue(likelihood);
+                    }
+
+                    // Debug info
                     System.out.println(placeLikelihood.getPlace().getName().toString());
                     System.out.println(placeLikelihood.getLikelihood());
                 }
