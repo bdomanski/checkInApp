@@ -113,7 +113,7 @@ public class LocationService extends FragmentActivity implements LocationListene
 
                 if(filterResult != null) {
                     // Print out
-                    for (PlaceLikelihood placeLikelihood : likelyPlaces) {
+                    for (PlaceLikelihood placeLikelihood : filterResult) {
                         name = placeLikelihood.getPlace().getName().toString();
                         likelihood = placeLikelihood.getLikelihood();
 

@@ -61,7 +61,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         mGoogleApiClient.connect();
 
         places = new LocationService(mGoogleApiClient, this, out);
-        //requestAccount();
+        requestAccount();
     }
 
     public void onQueryClick(View v) {
@@ -87,10 +87,17 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         }
     }
 
+    // Firebase will not accept periods for storing data
+    private String encodeString(String s) {
+        // Cut off @gmail.com
+        s = s.substring(0, s.indexOf('@'));
+        return s.replace('.', ',');
+    }
+
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         if (requestCode == REQUEST_CODE_EMAIL && resultCode == RESULT_OK) {
-            userID = data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME);
+            userID = encodeString(data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME));
             return;
         }
 
