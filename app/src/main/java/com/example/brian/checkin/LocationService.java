@@ -1,12 +1,11 @@
 package com.example.brian.checkin;
 
+import android.app.Service;
 import android.content.Context;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
-import android.os.Bundle;
-import android.support.annotation.NonNull;
-import android.support.v4.app.ActivityCompat;
-import android.support.v4.app.FragmentActivity;
+import android.os.IBinder;
 import android.support.v4.content.ContextCompat;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -23,7 +22,9 @@ import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.firebase.database.DatabaseReference;
+import com.intentfilter.androidpermissions.PermissionManager;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -31,7 +32,7 @@ import java.util.List;
  *
  */
 
-public class LocationService extends FragmentActivity implements LocationListener {
+public class LocationService extends Service implements LocationListener {
 
     // The geographical location where the device is currently located. That is, the last-known
     // location retrieved by the Fused Location Provider.
@@ -50,39 +51,52 @@ public class LocationService extends FragmentActivity implements LocationListene
     // Used for selecting the current place.
     private LocationRequest locationRequest;
 
-    // Used to access main activity's context
-    private Context context;
-
     // Restaurant Filter
     private PlaceTypeFilter restaurantFilter =
             new PlaceTypeFilter(new int[]{Place.TYPE_RESTAURANT, Place.TYPE_FOOD}, new int[]{});
 
     private List<PlaceLikelihood> filterResult;
 
+    // Check permissions
+    private PermissionManager permissionManager;
+    ArrayList<String> permissions = new ArrayList<>();
+
+    private Context context;
+
     LocationService(GoogleApiClient g, Context c, TextView t) {
         mGoogleApiClient = g;
-        context = c;
         output = t;
+        context = c;
 
         locationRequest = new LocationRequest();
         locationRequest.setInterval(10_000);
         locationRequest.setFastestInterval(5_000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
-    }
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+        permissions.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
+        permissions.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
     }
 
     public void getCurrentPlaces() {
+        permissionManager = PermissionManager.getInstance(context);
+        permissionManager.checkPermissions(permissions, new PermissionManager.PermissionRequestListener() {
+            @Override
+            public void onPermissionGranted() {
+                //Toast.makeText(context,"Permission Granted",Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onPermissionDenied() {
+                Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        });
         if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             System.out.println("Permission Granted\n");
             mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if(mLastKnownLocation != null) System.out.println(mLastKnownLocation.toString());
         } else {
             System.out.println("Permission Not Granted\n");
-            ActivityCompat.requestPermissions(this, new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION}, 123);
+            return;
         }
 
         PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi
@@ -105,11 +119,21 @@ public class LocationService extends FragmentActivity implements LocationListene
 
                 filterResult = restaurantFilter.filteredPlaces(likelyPlaces);
 
+                // Remove places with 0 chance
+                if(filterResult != null) {
+                    for(int i = 0; i < filterResult.size(); ++i) {
+                        if(filterResult.get(i).getLikelihood() == 0) {
+                            filterResult.remove(i);
+                            --i;
+                        }
+                    }
+                }
+
                 String name;
                 float likelihood;
 
                 // Print depending on number of places
-                output.setText(likelyPlaces.getCount() > 0 ? "Nearby Places:\n" : "No Nearby Places\n");
+                output.setText(filterResult.size() > 0 ? "Nearby Places:\n" : "No Nearby Places\n");
 
                 if(filterResult != null) {
                     // Print out
@@ -135,28 +159,26 @@ public class LocationService extends FragmentActivity implements LocationListene
         });
     }
 
-    @Override
-    public void onRequestPermissionsResult(final int requestCode, @NonNull final String[] permissions, @NonNull final int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        if (requestCode == 123) {
-            if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                // Permission granted.
-                getCurrentPlaces();
-            } else {
-                // User refused to grant permission. You can add AlertDialog here
-                Toast.makeText(this, "You didn't give permission to access device location", Toast.LENGTH_LONG).show();
-            }
-        }
-    }
-
     public void requestLocationUpdates() {
+        permissionManager = PermissionManager.getInstance(context);
+        permissionManager.checkPermissions(permissions, new PermissionManager.PermissionRequestListener() {
+            @Override
+            public void onPermissionGranted() {
+                //Toast.makeText(getBaseContext(),"Permission Granted",Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onPermissionDenied() {
+                Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        });
         if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             System.out.println("Permission Granted\n");
             mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
             if(mLastKnownLocation != null) System.out.println(mLastKnownLocation.toString());
         } else {
             System.out.println("Permission Not Granted\n");
-            ActivityCompat.requestPermissions(this, new String[] {android.Manifest.permission.ACCESS_FINE_LOCATION}, 123);
+            return;
         }
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,  locationRequest, this);
@@ -168,13 +190,7 @@ public class LocationService extends FragmentActivity implements LocationListene
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-    }
-
-    @Override
-    protected void onStop() {
-        mGoogleApiClient.disconnect();
-        super.onStop();
+    public IBinder onBind(Intent intent) {
+        return null;
     }
 }
