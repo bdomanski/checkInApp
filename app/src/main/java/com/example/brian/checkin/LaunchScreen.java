@@ -28,14 +28,12 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     private static final int REQUEST_CODE_EMAIL = 1;
 
     private EditText text_box;
-    private TextView out;
 
     private GoogleApiClient mGoogleApiClient;
 
     // Reference to Firebase Database
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference userRef;
-    private DatabaseReference pushRef;
 
     // Calls places API
     private LocationService places;
@@ -48,7 +46,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch_screen);
         text_box = findViewById(R.id.location_input);
-        out = findViewById(R.id.output);
+        TextView out = findViewById(R.id.output);
 
                 // Construct a GeoDataClient.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -68,7 +66,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
     public void onQueryClick(View v) {
         userRef = database.getReference(userID);
-        pushRef = userRef.push();
+        DatabaseReference pushRef = userRef.push();
         pushRef.child("userInput").setValue(text_box.getText().toString());
 
         places.placesRef = pushRef;

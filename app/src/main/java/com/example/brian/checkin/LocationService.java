@@ -11,22 +11,20 @@ import android.support.v4.content.ContextCompat;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.common.api.PendingResult;
 import com.google.android.gms.common.api.ResultCallback;
 import com.google.android.gms.common.api.Status;
-import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationRequest;
 import com.google.android.gms.location.LocationServices;
+import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceLikelihood;
 import com.google.android.gms.location.places.PlaceLikelihoodBuffer;
 import com.google.android.gms.location.places.Places;
 import com.google.firebase.database.DatabaseReference;
-import com.google.firebase.database.FirebaseDatabase;
 
-import org.w3c.dom.Text;
+import java.util.List;
 
 /**
  * Created by Brian on 10/27/2017.
@@ -39,10 +37,13 @@ public class LocationService extends FragmentActivity implements LocationListene
     // location retrieved by the Fused Location Provider.
     private Location mLastKnownLocation;
 
+    // Output results to screen
     private TextView output;
+
+    // Access to google api
     public GoogleApiClient mGoogleApiClient;
 
-    private FirebaseDatabase database = FirebaseDatabase.getInstance();
+    // Firebase references
     private DatabaseReference pushRef;
     public DatabaseReference placesRef;
 
@@ -51,6 +52,12 @@ public class LocationService extends FragmentActivity implements LocationListene
 
     // Used to access main activity's context
     private Context context;
+
+    // Restaurant Filter
+    private PlaceTypeFilter restaurantFilter =
+            new PlaceTypeFilter(new int[]{Place.TYPE_RESTAURANT, Place.TYPE_FOOD}, new int[]{});
+
+    private List<PlaceLikelihood> filterResult;
 
     LocationService(GoogleApiClient g, Context c, TextView t) {
         mGoogleApiClient = g;
@@ -96,28 +103,32 @@ public class LocationService extends FragmentActivity implements LocationListene
                     placesRef.child("placesAPI").setValue("ERROR");
                 }
 
+                filterResult = restaurantFilter.filteredPlaces(likelyPlaces);
+
                 String name;
                 float likelihood;
 
                 // Print depending on number of places
                 output.setText(likelyPlaces.getCount() > 0 ? "Nearby Places:\n" : "No Nearby Places\n");
 
-                // Print out
-                for (PlaceLikelihood placeLikelihood : likelyPlaces) {
-                    name = placeLikelihood.getPlace().getName().toString();
-                    likelihood = placeLikelihood.getLikelihood();
+                if(filterResult != null) {
+                    // Print out
+                    for (PlaceLikelihood placeLikelihood : likelyPlaces) {
+                        name = placeLikelihood.getPlace().getName().toString();
+                        likelihood = placeLikelihood.getLikelihood();
 
-                    if(likelihood > 0) {
-                        output.append(name + ": " + likelihood + '\n');
+                        if(likelihood > 0) {
+                            output.append(name + ": " + likelihood + '\n');
 
-                        pushRef = placesRef.child("placesAPI").push();
-                        pushRef.child("Name").setValue(name);
-                        pushRef.child("Likelihood").setValue(likelihood);
+                            pushRef = placesRef.child("placesAPI").push();
+                            pushRef.child("Name").setValue(name);
+                            pushRef.child("Likelihood").setValue(likelihood);
+                        }
+
+                        // Debug info
+                        System.out.println(placeLikelihood.getPlace().getName().toString());
+                        System.out.println(placeLikelihood.getLikelihood());
                     }
-
-                    // Debug info
-                    System.out.println(placeLikelihood.getPlace().getName().toString());
-                    System.out.println(placeLikelihood.getLikelihood());
                 }
                 likelyPlaces.release();
             }
@@ -149,10 +160,6 @@ public class LocationService extends FragmentActivity implements LocationListene
         }
 
         LocationServices.FusedLocationApi.requestLocationUpdates(mGoogleApiClient,  locationRequest, this);
-    }
-
-    public void setContext(Context in) {
-        context = in;
     }
 
     @Override
