@@ -19,6 +19,7 @@ import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.TextView;
 
 public class LaunchScreen extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -27,6 +28,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     private static final int REQUEST_CODE_EMAIL = 1;
 
     private EditText text_box;
+    private TextView out;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -46,8 +48,9 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch_screen);
         text_box = findViewById(R.id.location_input);
+        out = findViewById(R.id.output);
 
-        // Construct a GeoDataClient.
+                // Construct a GeoDataClient.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addApi(Places.GEO_DATA_API)
@@ -57,11 +60,9 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
                 .addOnConnectionFailedListener(this)
                 .build();
 
-        places = new LocationService();
-        places.setContext(this);
-
         mGoogleApiClient.connect();
 
+        places = new LocationService(mGoogleApiClient, this, out);
         //requestAccount();
     }
 
@@ -127,7 +128,6 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     @Override
     public void onConnected(Bundle bundle) {
         System.out.println("Time to request location updates");
-        places.mGoogleApiClient = mGoogleApiClient;
         places.requestLocationUpdates();
         System.out.println("Done");
     }

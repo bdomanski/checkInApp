@@ -26,6 +26,8 @@ import com.google.android.gms.location.places.Places;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import org.w3c.dom.Text;
+
 /**
  * Created by Brian on 10/27/2017.
  *
@@ -50,15 +52,20 @@ public class LocationService extends FragmentActivity implements LocationListene
     // Used to access main activity's context
     private Context context;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    LocationService(GoogleApiClient g, Context c, TextView t) {
+        mGoogleApiClient = g;
+        context = c;
+        output = t;
 
-        output = findViewById(R.id.output);
         locationRequest = new LocationRequest();
         locationRequest.setInterval(10_000);
         locationRequest.setFastestInterval(5_000);
         locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
     }
 
     public void getCurrentPlaces() {
@@ -84,6 +91,10 @@ public class LocationService extends FragmentActivity implements LocationListene
                 System.out.println(status.getStatusCode());
                 System.out.println(status.getStatusMessage());
                 System.out.println(status.getStatus());
+
+                if(!status.isSuccess()) {
+                    placesRef.child("placesAPI").setValue("ERROR");
+                }
 
                 String name;
                 float likelihood;
