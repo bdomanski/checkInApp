@@ -133,7 +133,7 @@ public class LocationService extends Service implements LocationListener {
                 float likelihood;
 
                 // Print depending on number of places
-                output.setText(filterResult.size() > 0 ? "Nearby Places:\n" : "No Nearby Places\n");
+                output.setText(filterResult.size() > 0 ? "Nearby Places:\n\n" : "No Nearby Places\n\n");
 
                 if(filterResult != null) {
                     // Print out
@@ -142,7 +142,7 @@ public class LocationService extends Service implements LocationListener {
                         likelihood = placeLikelihood.getLikelihood();
 
                         if(likelihood > 0) {
-                            output.append(name + ": " + likelihood + '\n');
+                            output.append(name + ": " + likelihood + "\n\n");
 
                             pushRef = placesRef.child("placesAPI").push();
                             pushRef.child("Name").setValue(name);
