@@ -1,7 +1,5 @@
 package com.example.brian.checkin;
 
-import com.google.android.gms.auth.GoogleAuthUtil;
-import com.google.android.gms.common.AccountPicker;
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
 import com.google.android.gms.location.ActivityRecognition;
@@ -11,10 +9,8 @@ import com.google.android.gms.location.places.Places;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
-import android.accounts.AccountManager;
-import android.content.ActivityNotFoundException;
-import android.content.Intent;
 import android.location.Location;
+import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -24,10 +20,9 @@ import android.widget.TextView;
 public class LaunchScreen extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
 
-    // Code that should be received when requesting account
-    private static final int REQUEST_CODE_EMAIL = 1;
-
     private EditText text_box;
+    private TextView out;
+    private TextView keyOut;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -41,12 +36,17 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     // User ID to push to Firebase
     private String userID = "null";
 
+    // Get and set userID that stays constant while app is installed
+    private PreferencesHelper ph;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch_screen);
         text_box = findViewById(R.id.location_input);
-        TextView out = findViewById(R.id.output);
+
+        out = findViewById(R.id.output);
+        keyOut = findViewById(R.id.keyOut);
 
                 // Construct a GeoDataClient.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -60,8 +60,9 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
         mGoogleApiClient.connect();
 
-        places = new LocationService(mGoogleApiClient, this, out);
-        requestAccount();
+        ph = new PreferencesHelper(this);
+        setPreferences();
+        if(keyOut != null) keyOut.setText(userID);
     }
 
     public void onQueryClick(View v) {
@@ -70,41 +71,27 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         pushRef.child("userInput").setValue(text_box.getText().toString());
 
         places.placesRef = pushRef;
-        places.requestLocationUpdates();
-        places.getCurrentPlaces();
-    }
 
-    public void requestAccount() {
-
-        Intent intent = AccountPicker.newChooseAccountIntent(null, null,
-                new String[]{GoogleAuthUtil.GOOGLE_ACCOUNT_TYPE},
-                false, null, null, null, null);
-
-        try {
-            startActivityForResult(intent, REQUEST_CODE_EMAIL);
-        } catch (ActivityNotFoundException e) {
-            userRef = database.getReference(userID);
+        if(mGoogleApiClient.isConnected()) {
+            places.requestLocationUpdates();
+            places.getCurrentPlaces();
+        } else {
+            mGoogleApiClient.connect();
         }
     }
 
-    // Firebase will not accept periods for storing data
-    private String encodeString(String s) {
-        // Cut off @gmail.com
-        s = s.substring(0, s.indexOf('@'));
-        return s.replace('.', ',');
-    }
+    private void setPreferences() {
+        if(ph.empty()) {
 
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        if (requestCode == REQUEST_CODE_EMAIL && resultCode == RESULT_OK) {
-            userID = encodeString(data.getStringExtra(AccountManager.KEY_ACCOUNT_NAME));
-            return;
+            // Set new userID if one does not exist
+            userRef = database.getReference();
+            userID = userRef.push().getKey();
+            ph.setKey(userID);
+        } else {
+
+            // Get userID
+            userID = ph.getKey();
         }
-
-        // Set location to push data
-        userRef = database.getReference(userID);
-
-        super.onActivityResult(requestCode, resultCode, data);
     }
 
     @Override
@@ -122,7 +109,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     }
 
     @Override
-    public void onConnectionFailed(ConnectionResult result) {
+    public void onConnectionFailed(@NonNull ConnectionResult result) {
         System.err.println(result.toString());
     }
 
@@ -132,8 +119,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
     @Override
     public void onConnected(Bundle bundle) {
-        System.out.println("Time to request location updates");
+        places = new LocationService(mGoogleApiClient, this, out);
         places.requestLocationUpdates();
-        System.out.println("Done");
     }
 }

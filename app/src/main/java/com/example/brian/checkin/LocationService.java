@@ -6,6 +6,7 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.Location;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -104,7 +105,7 @@ public class LocationService extends Service implements LocationListener {
 
         placeResult.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
             @Override
-            public void onResult(PlaceLikelihoodBuffer likelyPlaces) {
+            public void onResult(@NonNull PlaceLikelihoodBuffer likelyPlaces) {
 
                 // Debug info printed to console
                 Status status = likelyPlaces.getStatus();
@@ -133,9 +134,12 @@ public class LocationService extends Service implements LocationListener {
                 float likelihood;
 
                 // Print depending on number of places
-                output.setText(filterResult.size() > 0 ? "Nearby Places:\n\n" : "No Nearby Places\n\n");
+                output.setText((filterResult != null) && filterResult.size() > 0 ? "Nearby Places:\n\n" : "No Nearby Places\n\n");
 
                 if(filterResult != null) {
+                    if(filterResult.size() == 0) {
+                        placesRef.child("placesAPI").setValue("No Nearby Places");
+                    }
                     // Print out
                     for (PlaceLikelihood placeLikelihood : filterResult) {
                         name = placeLikelihood.getPlace().getName().toString();
