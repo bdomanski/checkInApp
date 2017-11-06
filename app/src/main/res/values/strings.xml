@@ -3,4 +3,8 @@
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
+    <string name="restaurant_hint">Restaurant Name</string>
+    <string name="query">Query</string>
+    <string name="unique_key">Your Unique Key:</string>
+    <string name="copy">Copy Key</string>
 </resources>

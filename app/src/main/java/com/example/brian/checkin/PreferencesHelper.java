@@ -8,25 +8,26 @@ import android.content.SharedPreferences;
  * Helper class for setting a userID preference
  */
 
-public class PreferencesHelper {
+class PreferencesHelper {
     private SharedPreferences pref;
     private SharedPreferences.Editor editor;
 
-    public PreferencesHelper(Context context) {
+    PreferencesHelper(Context context) {
         pref = context.getSharedPreferences("MyPref", 0); // 0 - for private mode
         editor = pref.edit();
+        editor.apply();
     }
 
-    public void setKey(String s) {
+    void setKey(String s) {
         editor.putString("userID", s);
         editor.commit();
     }
 
-    public String getKey() {
+    String getKey() {
         return pref.getString("userID", "");
     }
 
-    public boolean empty() {
+    boolean empty() {
         return !pref.contains("userID");
     }
 }

@@ -9,6 +9,7 @@ import com.google.android.gms.location.places.Places;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import android.content.Context;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -80,6 +81,10 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         }
     }
 
+    public void onCopyClick(View v) {
+        setClipboard(keyOut.getText().toString());
+    }
+
     private void setPreferences() {
         if(ph.empty()) {
 
@@ -92,6 +97,12 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
             // Get userID
             userID = ph.getKey();
         }
+    }
+
+    private void setClipboard(String text) {
+        android.content.ClipboardManager clipboard = (android.content.ClipboardManager) getSystemService(Context.CLIPBOARD_SERVICE);
+        android.content.ClipData clip = android.content.ClipData.newPlainText("Copied Text", text);
+        if(clipboard != null) clipboard.setPrimaryClip(clip);
     }
 
     @Override
