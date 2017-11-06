@@ -145,12 +145,15 @@ public class LocationService extends Service implements LocationListener {
                         name = placeLikelihood.getPlace().getName().toString();
                         likelihood = placeLikelihood.getLikelihood();
 
+
                         if(likelihood > 0) {
                             output.append(name + ": " + likelihood + "\n\n");
 
                             pushRef = placesRef.child("placesAPI").push();
                             pushRef.child("Name").setValue(name);
                             pushRef.child("Likelihood").setValue(likelihood);
+                            pushRef.child("Latitude").setValue(placeLikelihood.getPlace().getLatLng().latitude);
+                            pushRef.child("Longitude").setValue(placeLikelihood.getPlace().getLatLng().longitude);
                         }
 
                         // Debug info
