@@ -63,7 +63,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
         ph = new PreferencesHelper(this);
         setPreferences();
-        if(keyOut != null) keyOut.setText(userID);
+        if(keyOut != null) keyOut.setText(userID.substring(userID.length() - 8));
     }
 
     public void onQueryClick(View v) {
@@ -82,7 +82,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     }
 
     public void onCopyClick(View v) {
-        setClipboard(keyOut.getText().toString());
+        setClipboard(userID.substring(userID.length() - 8));
     }
 
     private void setPreferences() {

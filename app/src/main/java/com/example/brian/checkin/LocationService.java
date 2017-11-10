@@ -27,6 +27,7 @@ import com.intentfilter.androidpermissions.PermissionManager;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Date;
 
 /**
  * Created by Brian on 10/27/2017.
@@ -63,6 +64,9 @@ public class LocationService extends Service implements LocationListener {
     ArrayList<String> permissions = new ArrayList<>();
 
     private Context context;
+
+    // To get unix timestamp
+    private Date date;
 
     LocationService(GoogleApiClient g, Context c, TextView t) {
         mGoogleApiClient = g;
@@ -140,6 +144,7 @@ public class LocationService extends Service implements LocationListener {
                     if(filterResult.size() == 0) {
                         placesRef.child("placesAPI").setValue("No Nearby Places");
                     }
+                    date = new Date(); // get current time
                     // Print out
                     for (PlaceLikelihood placeLikelihood : filterResult) {
                         name = placeLikelihood.getPlace().getName().toString();
@@ -154,6 +159,7 @@ public class LocationService extends Service implements LocationListener {
                             pushRef.child("Likelihood").setValue(likelihood);
                             pushRef.child("Latitude").setValue(placeLikelihood.getPlace().getLatLng().latitude);
                             pushRef.child("Longitude").setValue(placeLikelihood.getPlace().getLatLng().longitude);
+                            pushRef.child("Time").setValue(date.getTime());
                         }
 
                         // Debug info
