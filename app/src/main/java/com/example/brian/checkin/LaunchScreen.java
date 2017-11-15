@@ -68,7 +68,11 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
     public void onQueryClick(View v) {
         userRef = database.getReference(userID);
-        DatabaseReference pushRef = userRef.push();
+        DatabaseReference pushRef = userRef.child(String.valueOf(ph.getQueries()));
+
+        // Add to the number of queries made
+        ph.updateQueries();
+
         pushRef.child("userInput").setValue(text_box.getText().toString());
 
         places.placesRef = pushRef;
@@ -92,6 +96,8 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
             userRef = database.getReference();
             userID = userRef.push().getKey();
             ph.setKey(userID);
+
+            ph.setQueries();
         } else {
 
             // Get userID

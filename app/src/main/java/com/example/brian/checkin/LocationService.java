@@ -145,6 +145,9 @@ public class LocationService extends Service implements LocationListener {
                         placesRef.child("placesAPI").setValue("No Nearby Places");
                     }
                     date = new Date(); // get current time
+
+                    int i = 0;
+
                     // Print out
                     for (PlaceLikelihood placeLikelihood : filterResult) {
                         name = placeLikelihood.getPlace().getName().toString();
@@ -154,7 +157,7 @@ public class LocationService extends Service implements LocationListener {
                         if(likelihood > 0) {
                             output.append(name + ": " + likelihood + "\n\n");
 
-                            pushRef = placesRef.child("placesAPI").push();
+                            pushRef = placesRef.child("placesAPI").child(String.valueOf(i++));
                             pushRef.child("Name").setValue(name);
                             pushRef.child("Likelihood").setValue(likelihood);
                             pushRef.child("Latitude").setValue(placeLikelihood.getPlace().getLatLng().latitude);

@@ -23,6 +23,20 @@ class PreferencesHelper {
         editor.commit();
     }
 
+    void setQueries() {
+        editor.putInt("Queries", 0);
+        editor.commit();
+    }
+
+    void updateQueries() {
+        editor.putInt("Queries", getQueries() + 1);
+        editor.commit();
+    }
+
+    int getQueries() {
+        return pref.getInt("Queries", 0);
+    }
+
     String getKey() {
         return pref.getString("userID", "");
     }
