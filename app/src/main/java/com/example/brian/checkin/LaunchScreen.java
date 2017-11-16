@@ -40,6 +40,8 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     // Get and set userID that stays constant while app is installed
     private PreferencesHelper ph;
 
+    private Boolean clicked = false;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -67,22 +69,28 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     }
 
     public void onQueryClick(View v) {
-        userRef = database.getReference(userID);
-        DatabaseReference pushRef = userRef.child(String.valueOf(ph.getQueries()));
-
-        // Add to the number of queries made
-        ph.updateQueries();
-
-        pushRef.child("userInput").setValue(text_box.getText().toString());
-
-        places.placesRef = pushRef;
+        clicked = true; // Button was just clicked
 
         if(mGoogleApiClient.isConnected()) {
+            database.goOnline();
+
+            // Add to the number of queries made
+            ph.updateQueries();
+            userRef = database.getReference(userID);
+            DatabaseReference pushRef = userRef.child(String.valueOf(ph.getQueries()));
+
+            pushRef.child("userInput").setValue(text_box.getText().toString());
+
+            places.placesRef = pushRef;
+
             places.requestLocationUpdates();
             places.getCurrentPlaces();
         } else {
+            // onQueryClick() will be called again in onConnected()
             mGoogleApiClient.connect();
         }
+
+        clicked = false; // Button done being clicked
     }
 
     public void onCopyClick(View v) {
@@ -138,5 +146,8 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     public void onConnected(Bundle bundle) {
         places = new LocationService(mGoogleApiClient, this, out);
         places.requestLocationUpdates();
+
+        // If called from onQueryClick, return to function
+        if(clicked) onQueryClick(this.findViewById(R.id.btn_query));
     }
 }
