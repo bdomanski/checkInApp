@@ -145,6 +145,7 @@ public class LocationService extends Service implements LocationListener {
                         placesRef.child("placesAPI").setValue("No Nearby Places");
                     }
                     date = new Date(); // get current time
+                    pushRef.child("Time").setValue(date.getTime());
 
                     int i = 0;
 
@@ -162,7 +163,6 @@ public class LocationService extends Service implements LocationListener {
                             pushRef.child("Likelihood").setValue(likelihood);
                             pushRef.child("Latitude").setValue(placeLikelihood.getPlace().getLatLng().latitude);
                             pushRef.child("Longitude").setValue(placeLikelihood.getPlace().getLatLng().longitude);
-                            pushRef.child("Time").setValue(date.getTime());
                         }
 
                         // Debug info
