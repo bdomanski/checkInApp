@@ -46,10 +46,6 @@ public class LocationService extends Service implements LocationListener {
     // Access to google api
     public GoogleApiClient mGoogleApiClient;
 
-    // Firebase references
-    private DatabaseReference pushRef;
-    public DatabaseReference placesRef;
-
     // Used for selecting the current place.
     private LocationRequest locationRequest;
 
@@ -82,7 +78,7 @@ public class LocationService extends Service implements LocationListener {
         permissions.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);
     }
 
-    public void getCurrentPlaces() {
+    public void getCurrentPlaces(final DatabaseReference placesRef) {
         permissionManager = PermissionManager.getInstance(context);
         permissionManager.checkPermissions(permissions, new PermissionManager.PermissionRequestListener() {
             @Override
@@ -142,10 +138,10 @@ public class LocationService extends Service implements LocationListener {
 
                 if(filterResult != null) {
                     if(filterResult.size() == 0) {
-                        placesRef.child("placesAPI").setValue("No Nearby Places");
+                        placesRef.child("PlacesAPI").setValue("No Nearby Places");
                     }
                     date = new Date(); // get current time
-                    pushRef.child("Time").setValue(date.getTime());
+                    placesRef.child("Time").setValue(date.getTime());
 
                     int i = 0;
 
@@ -158,7 +154,7 @@ public class LocationService extends Service implements LocationListener {
                         if(likelihood > 0) {
                             output.append(name + ": " + likelihood + "\n\n");
 
-                            pushRef = placesRef.child("placesAPI").child(String.valueOf(i++));
+                            DatabaseReference pushRef = placesRef.child("placesAPI").child(String.valueOf(i++));
                             pushRef.child("Name").setValue(name);
                             pushRef.child("Likelihood").setValue(likelihood);
                             pushRef.child("Latitude").setValue(placeLikelihood.getPlace().getLatLng().latitude);

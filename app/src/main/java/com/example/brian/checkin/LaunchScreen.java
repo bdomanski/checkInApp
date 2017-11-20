@@ -23,7 +23,6 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
     private EditText text_box;
     private TextView out;
-    private TextView keyOut;
 
     private GoogleApiClient mGoogleApiClient;
 
@@ -49,7 +48,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         text_box = findViewById(R.id.location_input);
 
         out = findViewById(R.id.output);
-        keyOut = findViewById(R.id.keyOut);
+        TextView keyOut = findViewById(R.id.keyOut);
 
                 // Construct a GeoDataClient.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
@@ -79,12 +78,10 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
             userRef = database.getReference(userID);
             DatabaseReference pushRef = userRef.child(String.valueOf(ph.getQueries()));
 
-            pushRef.child("userInput").setValue(text_box.getText().toString());
-
-            places.placesRef = pushRef;
+            pushRef.child("UserInput").setValue(text_box.getText().toString());
 
             places.requestLocationUpdates();
-            places.getCurrentPlaces();
+            places.getCurrentPlaces(pushRef);
         } else {
             // onQueryClick() will be called again in onConnected()
             mGoogleApiClient.connect();
@@ -131,6 +128,18 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     protected void onStop() {
         mGoogleApiClient.disconnect();
         super.onStop();
+    }
+
+    @Override
+    protected void onPause() {
+        mGoogleApiClient.disconnect();
+        super.onPause();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        mGoogleApiClient.connect();
     }
 
     @Override
