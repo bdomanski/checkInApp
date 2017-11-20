@@ -73,10 +73,11 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         if(mGoogleApiClient.isConnected()) {
             database.goOnline();
 
-            // Add to the number of queries made
-            ph.updateQueries();
             userRef = database.getReference(userID);
             DatabaseReference pushRef = userRef.child(String.valueOf(ph.getQueries()));
+
+            // Add to the number of queries made
+            ph.updateQueries();
 
             pushRef.child("UserInput").setValue(text_box.getText().toString());
 
