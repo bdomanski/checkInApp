@@ -30,11 +30,17 @@ dependencies {
     compile 'com.android.support:support-vector-drawable:26.0.1'
     compile 'com.android.support.constraint:constraint-layout:1.0.2'
     compile 'com.android.support:support-annotations:26.0.1'
+
     compile 'com.google.android.gms:play-services-maps:11.4.2'
     compile 'com.google.android.gms:play-services-places:11.4.2'
     compile 'com.google.android.gms:play-services-location:11.4.2'
     compile 'com.google.android.gms:play-services-auth:11.4.2'
+    compile 'com.google.android.gms:play-services-identity:11.4.2'
+    compile 'com.google.android.gms:play-services-gcm:11.4.2'
+
+    compile 'com.google.firebase:firebase-core:11.4.2'
     compile 'com.google.firebase:firebase-database:11.4.2'
+    compile 'com.google.firebase:firebase-messaging:11.4.2'
     compile 'com.intentfilter:android-permissions:0.1.2'
     testCompile 'junit:junit:4.12'
 }
