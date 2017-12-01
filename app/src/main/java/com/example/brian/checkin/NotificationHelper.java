@@ -15,38 +15,18 @@ import static android.app.Notification.DEFAULT_ALL;
  * related functions
  */
 
-public class NotificationHelper {
+class NotificationHelper {
 
     private NotificationManager mNotificationManager;
     private Context context;
 
-    public NotificationHelper(Context c) {
+    NotificationHelper(Context c) {
         context = c;
 
         mNotificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-        // The id of the channel.
-        String id = "reminder";
-
-        // The user-visible name of the channel.
-        CharSequence name = context.getString(R.string.channel_name);
-
-        // The user-visible description of the channel.
-        /*String description = context.getString(R.string.channel_description);
-        int importance = NotificationManager.IMPORTANCE_HIGH;
-        NotificationChannel mChannel = new NotificationChannel(id, name, importance);
-
-        // Configure the notification channel.
-        mChannel.setDescription(description);
-        mChannel.enableLights(true);
-
-        // Sets the notification light color for notifications posted to this
-        // channel, if the device supports this feature.
-        mChannel.enableVibration(true);
-        mNotificationManager.createNotificationChannel(mChannel);*/
     }
 
-    public void sendNotification() {
+    void sendNotification() {
 
         // The id of the channel.
         String CHANNEL_ID = "reminder";
@@ -76,8 +56,6 @@ public class NotificationHelper {
                         PendingIntent.FLAG_UPDATE_CURRENT
                 );
         mBuilder.setContentIntent(resultPendingIntent);
-        NotificationManager mNotificationManager =
-                (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
         // mNotificationId is a unique integer your app uses to identify the
         // notification. For example, to cancel the notification, you can pass its ID

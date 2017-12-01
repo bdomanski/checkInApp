@@ -10,6 +10,7 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
 import android.content.Context;
+import android.content.Intent;
 import android.location.Location;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
@@ -41,6 +42,10 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
     // Helper to send notifications to user
     private NotificationHelper nh;
+
+    // Used to send user notifications when they are at a restaurant
+    private BackgroundService backgroundService = new BackgroundService();
+    private Intent bgIntent = new Intent(this, BackgroundService.class);
 
     private Boolean clicked = false;
 
@@ -139,12 +144,13 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
     @Override
     protected void onPause() {
-        mGoogleApiClient.disconnect();
+        backgroundService.startService(bgIntent);
         super.onPause();
     }
 
     @Override
     protected void onResume() {
+        backgroundService.stopService(bgIntent);
         super.onResume();
         mGoogleApiClient.connect();
     }

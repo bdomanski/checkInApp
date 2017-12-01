@@ -37,6 +37,10 @@
             android:name="com.google.android.geo.API_KEY"
             android:value="AIzaSyCUlfVi1SsrmMtg7JXE3azmdOd8xpCIFe0"/>
 
+        <service
+            android:name=".BackgroundService"
+            android:exported="false"/>
+
         package="com.google.android.gms.location.sample.basiclocationsample" >
     </application>
 
