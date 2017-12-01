@@ -39,6 +39,9 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     // Get and set userID that stays constant while app is installed
     private PreferencesHelper ph;
 
+    // Helper to send notifications to user
+    private NotificationHelper nh;
+
     private Boolean clicked = false;
 
     @Override
@@ -65,6 +68,8 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         ph = new PreferencesHelper(this);
         setPreferences();
         if(keyOut != null) keyOut.setText(userID.substring(userID.length() - 8));
+
+        nh = new NotificationHelper(this);
     }
 
     public void onQueryClick(View v) {
@@ -93,6 +98,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
     public void onCopyClick(View v) {
         setClipboard(userID.substring(userID.length() - 8));
+        nh.sendNotification();
     }
 
     private void setPreferences() {

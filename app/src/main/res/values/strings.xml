@@ -7,4 +7,6 @@
     <string name="query">Query</string>
     <string name="unique_key">Your Unique Key:</string>
     <string name="copy">Copy Key</string>
+    <string name="channel_name">Channel</string>
+    <string name="channel_description">Description</string>
 </resources>
