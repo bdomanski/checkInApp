@@ -35,7 +35,7 @@ public class BackgroundService extends Service {
 
     // Handler that receives messages from the thread
     private final class ServiceHandler extends Handler {
-        public ServiceHandler(Looper looper) {
+        ServiceHandler(Looper looper) {
             super(looper);
         }
         @Override
@@ -43,7 +43,7 @@ public class BackgroundService extends Service {
 
             //nh.sendNotification();
 
-            new CountDownTimer(5000, 2500) {
+            new CountDownTimer(60000, 2500) {
 
                 public void onTick(long millisUntilFinished) {}
 

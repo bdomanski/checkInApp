@@ -12,6 +12,7 @@ import com.google.firebase.database.FirebaseDatabase;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -19,6 +20,10 @@ import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 
 public class LaunchScreen extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -41,11 +46,11 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     // Get and set userID that stays constant while app is installed
     private PreferencesHelper ph;
 
-    // Used to send user notifications when they are at a restaurant
-    private BackgroundService backgroundService = new BackgroundService();
-    private Intent bgIntent;
-
     private Boolean clicked = false;
+    private Boolean recentlyClicked = false;
+
+    private int ratelimit;
+    private final int LIMIT = 10; // rate limit (minutes)
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -71,36 +76,69 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         ph = new PreferencesHelper(this);
         setPreferences();
         if(keyOut != null) keyOut.setText(userID.substring(userID.length() - 8));
-
-        bgIntent = new Intent(this, BackgroundService.class);
     }
 
     public void onQueryClick(View v) {
-        clicked = true; // Button was just clicked
 
-        if(mGoogleApiClient.isConnected()) {
-            database.goOnline();
+        if(recentlyClicked) {
+            limitRate();
 
-            userRef = database.getReference(userID);
-            DatabaseReference pushRef = userRef.child(String.valueOf(ph.getQueries()));
-
-            // Add to the number of queries made
-            ph.updateQueries();
-
-            pushRef.child("UserInput").setValue(text_box.getText().toString());
-
-            places.requestLocationUpdates();
-            places.getCurrentPlaces(pushRef);
         } else {
-            // onQueryClick() will be called again in onConnected()
-            mGoogleApiClient.connect();
-        }
+            justClicked();
 
-        clicked = false; // Button done being clicked
+            if(mGoogleApiClient.isConnected()) {
+                database.goOnline();
+
+                userRef = database.getReference(userID);
+                DatabaseReference pushRef = userRef.child(String.valueOf(ph.getQueries()));
+
+                // Add to the number of queries made
+                ph.updateQueries();
+
+                pushRef.child("UserInput").setValue(text_box.getText().toString());
+
+                places.requestLocationUpdates();
+                places.getCurrentPlaces(pushRef);
+            } else {
+                // onQueryClick() will be called again in onConnected()
+                mGoogleApiClient.connect();
+            }
+
+            clicked = false; // Button done being clicked
+        }
     }
 
     public void onCopyClick(View v) {
         setClipboard(userID.substring(userID.length() - 8));
+    }
+
+    private void justClicked() {
+        clicked = true; // Button was just clicked
+        recentlyClicked = true;
+
+        new CountDownTimer(LIMIT * 60000, 1000) {
+
+            public void onTick(long millisUntilFinished) {
+                ratelimit = (int)millisUntilFinished / 1000;
+            }
+
+            public void onFinish() {
+                recentlyClicked = false;
+            }
+
+        }.start();
+    }
+
+    private void limitRate() {
+        Calendar c = Calendar.getInstance();
+        c.setTime(new Date());
+        c.add(Calendar.MINUTE, ratelimit / 60);
+        c.add(Calendar.SECOND, ratelimit % 60);
+        c.set(Calendar.AM_PM, Calendar.AM);
+
+        String time = new SimpleDateFormat("HH:mm:ss").format(c.getTime());
+        Toast.makeText(this, "Try again at " + time, Toast.LENGTH_LONG).show();
+
     }
 
     private void setPreferences() {
@@ -132,7 +170,6 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     protected void onStart() {
         super.onStart();
         stopService(new Intent(this, BackgroundService.class));
-        Toast.makeText(this, "Service Stopped", Toast.LENGTH_LONG).show();
     }
 
     @Override
