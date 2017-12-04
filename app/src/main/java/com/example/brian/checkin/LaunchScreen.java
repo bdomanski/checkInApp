@@ -18,6 +18,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 public class LaunchScreen extends FragmentActivity implements GoogleApiClient.ConnectionCallbacks,
         GoogleApiClient.OnConnectionFailedListener, LocationListener {
@@ -40,12 +41,9 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     // Get and set userID that stays constant while app is installed
     private PreferencesHelper ph;
 
-    // Helper to send notifications to user
-    private NotificationHelper nh;
-
     // Used to send user notifications when they are at a restaurant
     private BackgroundService backgroundService = new BackgroundService();
-    private Intent bgIntent = new Intent(this, BackgroundService.class);
+    private Intent bgIntent;
 
     private Boolean clicked = false;
 
@@ -58,7 +56,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         out = findViewById(R.id.output);
         TextView keyOut = findViewById(R.id.keyOut);
 
-                // Construct a GeoDataClient.
+        // Construct a GeoDataClient.
         mGoogleApiClient = new GoogleApiClient.Builder(this)
                 .addApi(LocationServices.API)
                 .addApi(Places.GEO_DATA_API)
@@ -74,7 +72,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         setPreferences();
         if(keyOut != null) keyOut.setText(userID.substring(userID.length() - 8));
 
-        nh = new NotificationHelper(this);
+        bgIntent = new Intent(this, BackgroundService.class);
     }
 
     public void onQueryClick(View v) {
@@ -103,7 +101,6 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
     public void onCopyClick(View v) {
         setClipboard(userID.substring(userID.length() - 8));
-        nh.sendNotification();
     }
 
     private void setPreferences() {
@@ -134,23 +131,24 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     @Override
     protected void onStart() {
         super.onStart();
+        stopService(new Intent(this, BackgroundService.class));
+        Toast.makeText(this, "Service Stopped", Toast.LENGTH_LONG).show();
     }
 
     @Override
     protected void onStop() {
         mGoogleApiClient.disconnect();
+        startService(new Intent(this, BackgroundService.class));
         super.onStop();
     }
 
     @Override
     protected void onPause() {
-        backgroundService.startService(bgIntent);
         super.onPause();
     }
 
     @Override
     protected void onResume() {
-        backgroundService.stopService(bgIntent);
         super.onResume();
         mGoogleApiClient.connect();
     }
