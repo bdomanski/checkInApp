@@ -64,6 +64,8 @@ public class LocationService extends Service implements LocationListener {
     // To get unix timestamp
     private Date date;
 
+    private Boolean found;
+
     LocationService(GoogleApiClient g, Context c, TextView t) {
         mGoogleApiClient = g;
         output = t;
@@ -169,6 +171,66 @@ public class LocationService extends Service implements LocationListener {
                 likelyPlaces.release();
             }
         });
+    }
+
+    public Boolean isCurrentPlaceRestaurant() {
+        permissionManager = PermissionManager.getInstance(context);
+        permissionManager.checkPermissions(permissions, new PermissionManager.PermissionRequestListener() {
+            @Override
+            public void onPermissionGranted() {
+                //Toast.makeText(context,"Permission Granted",Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onPermissionDenied() {
+                Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        });
+        if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+            System.out.println("Permission Granted\n");
+            mLastKnownLocation = LocationServices.FusedLocationApi.getLastLocation(mGoogleApiClient);
+            if(mLastKnownLocation != null) System.out.println(mLastKnownLocation.toString());
+        } else {
+            System.out.println("Permission Not Granted\n");
+            return false;
+        }
+
+        found = false;
+
+        PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi
+                .getCurrentPlace(mGoogleApiClient, null);
+
+        placeResult.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
+            @Override
+            public void onResult(@NonNull PlaceLikelihoodBuffer likelyPlaces) {
+
+                // Debug info printed to console
+                Status status = likelyPlaces.getStatus();
+                System.out.println(status.isSuccess());
+                System.out.println(status.getStatusCode());
+                System.out.println(status.getStatusMessage());
+                System.out.println(status.getStatus());
+
+                filterResult = restaurantFilter.filteredPlaces(likelyPlaces);
+
+                // Remove places with 0 chance
+                if(filterResult != null) {
+                    for(int i = 0; i < filterResult.size(); ++i) {
+                        if(filterResult.get(i).getLikelihood() == 0) {
+                            filterResult.remove(i);
+                            --i;
+                        }
+                    }
+
+                    if(likelyPlaces.getCount() > 0 && filterResult.size() > 0) {
+                        if(likelyPlaces.get(0) == filterResult.get(0)) found = true;
+                    }
+                }
+                likelyPlaces.release();
+            }
+        });
+
+        return found;
     }
 
     public void requestLocationUpdates() {
