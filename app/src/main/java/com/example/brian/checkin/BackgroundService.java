@@ -39,6 +39,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
     private NotificationHelper nh;
 
     private GoogleApiClient mGoogleApiClient;
+    private Location lastLocation;
 
     private LocationService places;
 
@@ -54,13 +55,24 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
         ServiceHandler(Looper looper) {
             super(looper);
         }
+
         @Override
         public void handleMessage(final Message msg) {
 
             if(mGoogleApiClient.isConnected()) {
-                // Check that user is at a restaurant
-                if(places.isCurrentPlaceRestaurant()) {
-                    ++consecutiveRestaurants;
+                if(consecutiveRestaurants == 0) {
+                    lastLocation = places.getLastLocation();
+                }
+
+                // Check that user is at a restaurant and is not moving quickly
+                if(places.isCurrentPlaceRestaurant() && lastLocation.getSpeed() < 8) {
+
+                    // Check user has not moved more than 50 meters
+                    if(lastLocation != null && lastLocation.distanceTo(places.getLastLocation()) < 50) {
+                        ++consecutiveRestaurants;
+                    } else {
+                        consecutiveRestaurants = 0;
+                    }
 
                     if(consecutiveRestaurants == 3) {
                         nh.sendNotification();

@@ -233,6 +233,10 @@ public class LocationService extends Service implements LocationListener {
         return found;
     }
 
+    public Location getLastLocation() {
+        return mLastKnownLocation;
+    }
+
     public void requestLocationUpdates() {
         permissionManager = PermissionManager.getInstance(context);
         permissionManager.checkPermissions(permissions, new PermissionManager.PermissionRequestListener() {
