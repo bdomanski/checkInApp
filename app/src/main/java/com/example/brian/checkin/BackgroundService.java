@@ -4,6 +4,8 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.Handler;
@@ -58,6 +60,16 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
 
         @Override
         public void handleMessage(final Message msg) {
+            int minutesToWait = 5;
+
+            ConnectivityManager cm =
+                    (ConnectivityManager)context.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+            NetworkInfo activeNetwork = cm.getActiveNetworkInfo();
+
+            // Only attempt to connect to Google API if connected to internet
+            boolean isConnected = activeNetwork != null &&
+                    activeNetwork.isConnectedOrConnecting();
 
             if(mGoogleApiClient.isConnected()) {
                 if(consecutiveRestaurants == 0) {
@@ -77,19 +89,22 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                     if(consecutiveRestaurants == 3) {
                         nh.sendNotification();
                         consecutiveRestaurants = 0;
+
+                        // Wait longer before sending another notification
+                        minutesToWait = 30;
                     }
                 // else, reset the count
                 } else {
                     consecutiveRestaurants = 0;
                 }
-            } else {
+            } else if(isConnected){
                 paused = true;
                 mGoogleApiClient.connect();
                 return;
             }
 
-            // Timer for 5 minutes
-            new CountDownTimer(5 * 60 * 1000, 2500) {
+            // Timer before running again
+            new CountDownTimer(minutesToWait * 60 * 1000, 2500) {
 
                 public void onTick(long millisUntilFinished) {}
 
