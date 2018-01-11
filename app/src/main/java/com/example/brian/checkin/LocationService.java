@@ -111,8 +111,6 @@ public class LocationService extends Service implements LocationListener {
 
                 // Debug info printed to console
                 Status status = likelyPlaces.getStatus();
-                System.out.println(status.isSuccess());
-                System.out.println(status.getStatusCode());
                 System.out.println(status.getStatusMessage());
                 System.out.println(status.getStatus());
 
