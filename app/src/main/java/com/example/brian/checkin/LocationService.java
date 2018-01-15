@@ -28,6 +28,7 @@ import com.intentfilter.androidpermissions.PermissionManager;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Date;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * Created by Brian on 10/27/2017.
@@ -198,14 +199,14 @@ public class LocationService extends Service implements LocationListener {
         PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi
                 .getCurrentPlace(mGoogleApiClient, null);
 
+        final CountDownLatch latch = new CountDownLatch(1);
+
         placeResult.setResultCallback(new ResultCallback<PlaceLikelihoodBuffer>() {
             @Override
             public void onResult(@NonNull PlaceLikelihoodBuffer likelyPlaces) {
 
                 // Debug info printed to console
                 Status status = likelyPlaces.getStatus();
-                System.out.println(status.isSuccess());
-                System.out.println(status.getStatusCode());
                 System.out.println(status.getStatusMessage());
                 System.out.println(status.getStatus());
 
@@ -223,10 +224,17 @@ public class LocationService extends Service implements LocationListener {
                     if(likelyPlaces.getCount() > 0 && filterResult.size() > 0) {
                         if(likelyPlaces.get(0) == filterResult.get(0)) found = true;
                     }
+                    latch.countDown();
                 }
                 likelyPlaces.release();
             }
         });
+        
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            System.err.println("Latch interrupted");
+        }
 
         return found;
     }
