@@ -1,10 +1,10 @@
 <resources>
-    <string name="app_name">CheckIn</string>
+    <string name="app_name">Check In</string>
     <string name="title_home">Home</string>
     <string name="title_dashboard">Dashboard</string>
     <string name="title_notifications">Notifications</string>
     <string name="restaurant_hint">Restaurant Name</string>
-    <string name="query">Query</string>
+    <string name="query">Check in</string>
     <string name="unique_key">Your Unique Key:</string>
     <string name="copy">Copy Key</string>
     <string name="channel_name">Channel</string>

@@ -32,7 +32,7 @@ class NotificationHelper {
         String CHANNEL_ID = "reminder";
         NotificationCompat.Builder mBuilder =
                 new NotificationCompat.Builder(context, CHANNEL_ID)
-                        .setSmallIcon(R.drawable.ic_notifications_black_24dp)
+                        .setSmallIcon(R.drawable.place_notification)
                         .setContentTitle("Would you like to check in?")
                         .setDefaults(DEFAULT_ALL)
                         .setContentText("It appears you are at a restaurant");
