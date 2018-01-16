@@ -8,6 +8,8 @@ import android.location.Location;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -134,9 +136,6 @@ public class LocationService extends Service implements LocationListener {
                 String name;
                 float likelihood;
 
-                // Print depending on number of places
-                output.setText((filterResult != null) && filterResult.size() > 0 ? "Nearby Places:\n\n" : "No Nearby Places\n\n");
-
                 if(filterResult != null) {
                     if(filterResult.size() == 0) {
                         placesRef.child("PlacesAPI").setValue("No Nearby Places");
@@ -153,8 +152,6 @@ public class LocationService extends Service implements LocationListener {
 
 
                         if(likelihood > 0) {
-                            output.append(name + ": " + likelihood + "\n\n");
-
                             DatabaseReference pushRef = placesRef.child("placesAPI").child(String.valueOf(i++));
                             pushRef.child("Name").setValue(name);
                             pushRef.child("Likelihood").setValue(likelihood);
@@ -167,6 +164,13 @@ public class LocationService extends Service implements LocationListener {
                         System.out.println(placeLikelihood.getLikelihood());
                     }
                 }
+
+                output.setText("Data successfully sent!\n\n");
+
+                // Print depending on number of places
+                output.append((filterResult != null) && filterResult.size() > 0 ?
+                        "Nearby restaurants found" : "No nearby restaurants");
+
                 likelyPlaces.release();
             }
         });
@@ -229,7 +233,7 @@ public class LocationService extends Service implements LocationListener {
                 likelyPlaces.release();
             }
         });
-        
+
         try {
             latch.await();
         } catch (InterruptedException e) {

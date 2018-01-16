@@ -12,11 +12,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import android.content.Context;
 import android.content.Intent;
 import android.location.Location;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AlphaAnimation;
+import android.view.animation.Animation;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -50,7 +54,8 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     private Boolean recentlyClicked = false;
 
     private int ratelimit;
-    private final int LIMIT = 10; // rate limit (minutes)
+
+    final Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -76,9 +81,32 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         ph = new PreferencesHelper(this);
         setPreferences();
         if(keyOut != null) keyOut.setText(userID.substring(userID.length() - 8));
+
+        fadeOut.setDuration(3000);
+        fadeOut.setStartOffset(10000);
+
+        fadeOut.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {}
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {}
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                out.setText("");
+            }
+        });
     }
 
     public void onQueryClick(View v) {
+
+        if(!isConnected()) {
+            String string_out = "No internet connection";
+            out.setText(string_out);
+            out.startAnimation(fadeOut);
+            return;
+        }
 
         if(recentlyClicked) {
             limitRate();
@@ -99,6 +127,7 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
 
                 places.requestLocationUpdates();
                 places.getCurrentPlaces(pushRef);
+                out.startAnimation(fadeOut);
             } else {
                 // onQueryClick() will be called again in onConnected()
                 mGoogleApiClient.connect();
@@ -113,10 +142,11 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
     }
 
     private void justClicked() {
+        int limit = 10; // Rate limit in minutes
         clicked = true; // Button was just clicked
         recentlyClicked = true;
 
-        new CountDownTimer(LIMIT * 60000, 1000) {
+        new CountDownTimer(limit * 60000, 1000) {
 
             public void onTick(long millisUntilFinished) {
                 ratelimit = (int)millisUntilFinished / 1000;
@@ -139,6 +169,17 @@ public class LaunchScreen extends FragmentActivity implements GoogleApiClient.Co
         String time = new SimpleDateFormat("HH:mm:ss").format(c.getTime());
         Toast.makeText(this, "Try again at " + time, Toast.LENGTH_LONG).show();
 
+    }
+
+    private boolean isConnected() {
+        ConnectivityManager cm =
+                (ConnectivityManager)this.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+        NetworkInfo activeNetwork = null;
+        if(cm != null) activeNetwork = cm.getActiveNetworkInfo();
+
+        // Only attempt to connect to Google API if connected to internet
+        return activeNetwork != null && activeNetwork.isConnectedOrConnecting();
     }
 
     private void setPreferences() {
