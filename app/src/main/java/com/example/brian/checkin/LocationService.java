@@ -211,7 +211,6 @@ public class LocationService extends Service implements LocationListener {
 
                 // Debug info printed to console
                 Status status = likelyPlaces.getStatus();
-                System.out.println(status.getStatusMessage());
                 System.out.println(status.getStatus());
 
                 filterResult = restaurantFilter.filteredPlaces(likelyPlaces);
@@ -226,7 +225,9 @@ public class LocationService extends Service implements LocationListener {
                     }
 
                     if(likelyPlaces.getCount() > 0 && filterResult.size() > 0) {
-                        if(likelyPlaces.get(0) == filterResult.get(0)) found = true;
+                        if(likelyPlaces.get(0).getPlace().getName().equals(filterResult.get(0).getPlace().getName())) {
+                            found = true;
+                        }
                     }
                     latch.countDown();
                 }

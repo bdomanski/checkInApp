@@ -75,7 +75,8 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                 if(consecutiveRestaurants == 0) {
                     lastLocation = places.getLastLocation();
                 }
-                System.out.println("Is restaurant?: " + places.isCurrentPlaceRestaurant());
+                boolean isRestaurant = places.isCurrentPlaceRestaurant();
+                System.out.println("Is restaurant?: " + isRestaurant);
 
                 if(consecutiveRestaurants == 3) {
                     nh.sendNotification();
@@ -83,7 +84,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                 }
 
                 // Check that user is at a restaurant and is not moving quickly
-                if(places.isCurrentPlaceRestaurant() && places.getLastLocation().getSpeed() < 8) {
+                if(isRestaurant && places.getLastLocation().getSpeed() < 8) {
 
                     // Check user has not moved more than 50 meters
                     if(lastLocation != null && lastLocation.distanceTo(places.getLastLocation()) < 50) {
