@@ -22,24 +22,18 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-            <Space
-                android:layout_width="match_parent"
-                android:layout_height="34dp"
-                android:layout_weight="1"
-                android:visibility="invisible" />
-
             <TextView
                 android:id="@+id/title"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="64dp"
+                android:maxLines="65000"
+                android:scrollbars="vertical"
                 android:text="User History:"
-                android:maxLines = "65000"
-                android:scrollbars = "vertical"
                 android:textAppearance="@style/TextAppearance.AppCompat.Display1" />
 
             <TextView
                 android:id="@+id/history"
-                android:layout_width="wrap_content"
+                android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:textAppearance="@style/TextAppearance.AppCompat.Large" />
         </LinearLayout>

@@ -1,5 +1,6 @@
 package com.example.brian.checkin;
 
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
@@ -30,7 +31,7 @@ public class HistoryActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_history);
+        setContentView(R.layout.content_history);
 
         // Allow user to scroll through their submission history
         history = findViewById(R.id.history);
@@ -47,10 +48,10 @@ public class HistoryActivity extends AppCompatActivity {
         addDrawerItems();
         setupDrawer();
 
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-            getSupportActionBar().setHomeButtonEnabled(true);
-            getSupportActionBar().setTitle("History");
+        if (getActionBar() != null) {
+            getActionBar().setDisplayHomeAsUpEnabled(true);
+            getActionBar().setHomeButtonEnabled(true);
+            getActionBar().setTitle("History");
         }
     }
 
@@ -62,6 +63,11 @@ public class HistoryActivity extends AppCompatActivity {
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                Intent intent = new Intent(getApplicationContext(), LaunchScreen.class);
+
+                if(id == 0) {
+                    startActivity(intent);
+                }
 
             }
         });
