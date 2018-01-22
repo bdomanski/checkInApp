@@ -34,6 +34,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
 import java.util.Date;
@@ -150,7 +151,11 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
                 userRef = database.getReference(userID);
                 DatabaseReference pushRef = userRef.child(String.valueOf(ph.getQueries()));
 
-                // Add to the number of queries made
+                Date date = new Date();
+                DateFormat df = android.text.format.DateFormat.getMediumDateFormat(getApplicationContext());
+
+                // Add user input and the number of queries made to app storage
+                ph.addUserString(df.format(date) + ": " + text_box.getText().toString());
                 ph.updateQueries();
 
                 pushRef.child("UserInput").setValue(text_box.getText().toString());

@@ -18,9 +18,16 @@ import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.ListIterator;
+
 public class HistoryActivity extends AppCompatActivity {
 
     private TextView history;
+
+    // Used for getting user entry history
+    private PreferencesHelper ph;
 
     // Construct a navigation list
     private ActionBarDrawerToggle mDrawerToggle;
@@ -36,10 +43,18 @@ public class HistoryActivity extends AppCompatActivity {
         // Allow user to scroll through their submission history
         history = findViewById(R.id.history);
         history.setMovementMethod(new ScrollingMovementMethod());
-
         history.setText("");
-        for(int i = 0; i < 100; ++i) {
-            history.append("Placeholder text\n");
+
+        ph = new PreferencesHelper(this);
+
+        // Check that user has entered something before
+        if(!ph.empty()) {
+            List<String> list = ph.getUserStrings();
+            ListIterator it = list.listIterator(list.size());
+
+            while(it.hasPrevious()) {
+                history.append(it.previous().toString() + '\n');
+            }
         }
 
         // Initialize navigation drawer
