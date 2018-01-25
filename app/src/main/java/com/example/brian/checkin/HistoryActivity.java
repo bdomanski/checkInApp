@@ -3,22 +3,19 @@ package com.example.brian.checkin;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.Toolbar;
 import android.text.method.ScrollingMovementMethod;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.Window;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.ListIterator;
 
@@ -37,8 +34,26 @@ public class HistoryActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        setTheme(R.style.AppTheme);
         super.onCreate(savedInstanceState);
+        requestWindowFeature(Window.FEATURE_ACTION_BAR);
         setContentView(R.layout.content_history);
+
+        printHistory();
+
+        // Initialize navigation drawer
+        mDrawerList = findViewById(R.id.navList);
+        mDrawerLayout = findViewById(R.id.drawer_layout);
+        addDrawerItems();
+        setupDrawer();
+        if(getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setHomeButtonEnabled(true);
+            getSupportActionBar().setTitle("History");
+        }
+    }
+
+    private void printHistory() {
 
         // Allow user to scroll through their submission history
         history = findViewById(R.id.history);
@@ -52,21 +67,26 @@ public class HistoryActivity extends AppCompatActivity {
             List<String> list = ph.getUserStrings();
             ListIterator it = list.listIterator(list.size());
 
-            while(it.hasPrevious()) {
-                history.append(it.previous().toString() + '\n');
+            String date, input, prev = "";
+
+            while (it.hasPrevious()) {
+                input = it.previous().toString();
+
+                // Check that string contains a date
+                if(input.contains(":") && input.indexOf(':') < 14) {
+                    date = input.substring(0, input.indexOf(':') + 1);
+                    input = input.substring(input.indexOf(':') + 1);
+
+                    // If new date, print date before user input
+                    if(!date.equals(prev)) {
+                        history.append('\n' + date + '\n');
+                        prev = date;
+                    }
+                    history.append('\t' + input + '\n');
+
+                } else
+                    history.append('\n' + input + '\n');
             }
-        }
-
-        // Initialize navigation drawer
-        mDrawerList = findViewById(R.id.navList);
-        mDrawerLayout = findViewById(R.id.drawer_layout);
-        addDrawerItems();
-        setupDrawer();
-
-        if (getActionBar() != null) {
-            getActionBar().setDisplayHomeAsUpEnabled(true);
-            getActionBar().setHomeButtonEnabled(true);
-            getActionBar().setTitle("History");
         }
     }
 
