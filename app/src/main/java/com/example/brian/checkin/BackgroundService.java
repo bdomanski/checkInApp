@@ -48,8 +48,8 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
 
     private Context context;
 
-    private Boolean stopped = false;
     private Boolean paused = false;
+    static Boolean started = false;
 
     private int consecutiveRestaurants;
 
@@ -61,6 +61,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
 
         @Override
         public void handleMessage(final Message msg) {
+
             int minutesToWait = 5;
 
             ConnectivityManager cm =
@@ -114,7 +115,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                 public void onTick(long millisUntilFinished) {}
 
                 public void onFinish() {
-                    if(!stopped) startService(new Intent(context, BackgroundService.class));
+                    if(!LaunchScreen.active) startService(new Intent(context, BackgroundService.class));
                 }
 
             }.start();
@@ -154,7 +155,12 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
         msg.arg1 = startId;
         mServiceHandler.sendMessage(msg);
 
-        stopped = false;
+        if(started) {
+            stopSelf();
+            return START_NOT_STICKY;
+        }
+
+        started = true;
 
         // Runs until explicitly stopped
         return START_STICKY;
@@ -162,7 +168,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
 
     @Override
     public void onDestroy() {
-        stopped = true;
+        started = false;
         stopSelf();
         mGoogleApiClient.disconnect();
         super.onDestroy();
@@ -192,7 +198,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
 
         // Check that Google Maps API was told to connect because
         // it was needed for the restaurant check
-        if(paused && !stopped) {
+        if(paused && !LaunchScreen.active) {
             startService(new Intent(context, BackgroundService.class));
             paused = false;
         }

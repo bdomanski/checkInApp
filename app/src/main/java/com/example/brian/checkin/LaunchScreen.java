@@ -61,6 +61,7 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
     private Boolean clicked = false;
     private Boolean recentlyClicked = false;
+    static Boolean active = false;
 
     private int ratelimit;
 
@@ -316,11 +317,13 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     @Override
     protected void onStart() {
         super.onStart();
+        active = true;
         stopService(new Intent(this, BackgroundService.class));
     }
 
     @Override
     protected void onStop() {
+        active = false;
         mGoogleApiClient.disconnect();
         startService(new Intent(this, BackgroundService.class));
         super.onStop();
