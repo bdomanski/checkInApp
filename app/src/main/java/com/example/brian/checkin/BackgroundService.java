@@ -14,6 +14,7 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
+import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -72,6 +73,8 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                     activeNetwork.isConnectedOrConnecting();
 
             if(mGoogleApiClient.isConnected()) {
+                Log.d("Last Location", places.getLastLocation().toString());
+
                 if(consecutiveRestaurants == 0) {
                     lastLocation = places.getLastLocation();
                 }
