@@ -11,6 +11,7 @@ import com.google.firebase.database.FirebaseDatabase;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.net.ConnectivityManager;
@@ -71,6 +72,7 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch_screen);
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
         text_box = findViewById(R.id.location_input);
 
         out = findViewById(R.id.output);

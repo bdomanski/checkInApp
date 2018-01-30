@@ -32,11 +32,15 @@
 
         <activity android:name=".LaunchScreen">
             <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
+                <action android:name="android.intent.action.MAIN"/>
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+            android:name=".HistoryActivity"
+            android:label="@string/title_activity_history" />
 
         <meta-data
             android:name="com.google.android.geo.API_KEY"
@@ -46,14 +50,6 @@
             android:name=".BackgroundService"
             android:exported="false" />
         package="com.google.android.gms.location.sample.basiclocationsample" >
-        <activity
-            android:name=".NavigationDrawer"
-            android:label="@string/title_activity_navigation_drawer"
-            android:theme="@style/AppTheme.NoActionBar" />
-        <activity
-            android:name=".HistoryActivity"
-            android:label="@string/title_activity_history"
-            android:theme="@style/AppTheme.NoActionBar"></activity>
     </application>
 
 </manifest>
