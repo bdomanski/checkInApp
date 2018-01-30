@@ -15,7 +15,6 @@ import android.content.res.Configuration;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
-import android.os.CountDownTimer;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.support.v4.widget.DrawerLayout;
@@ -35,7 +34,6 @@ import android.widget.Toast;
 
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.Calendar;
 import java.util.Date;
 
 public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
@@ -53,17 +51,13 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     // Calls places API
     private LocationService places;
 
+    private Boolean clicked = false;
+
     // User ID to push to Firebase
     private String userID = "null";
 
     // Get and set userID that stays constant while app is installed
     private PreferencesHelper ph;
-
-    private Boolean clicked = false;
-    private Boolean recentlyClicked = false;
-    static Boolean active = false;
-
-    private int ratelimit;
 
     // Animation for text to disappear
     final Animation fadeOut = new AlphaAnimation(1.0f, 0.0f);
@@ -72,7 +66,6 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     private ActionBarDrawerToggle mDrawerToggle;
     private ListView mDrawerList;
     private DrawerLayout mDrawerLayout;
-    private ArrayAdapter<String> mAdapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,6 +124,8 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     }
 
     public void onQueryClick(View v) {
+        Date date = new Date();
+        int minutes = 10;
 
         if(!isConnected()) {
             String string_out = "No internet connection";
@@ -139,11 +134,11 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
             return;
         }
 
-        if(recentlyClicked) {
+        if(date.getTime() < ph.getTime()) {
             limitRate();
 
         } else {
-            justClicked();
+            justClicked(date.getTime());
 
             if(mGoogleApiClient.isConnected()) {
                 database.goOnline();
@@ -151,7 +146,6 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
                 userRef = database.getReference(userID);
                 DatabaseReference pushRef = userRef.child(String.valueOf(ph.getQueries()));
 
-                Date date = new Date();
                 DateFormat df = android.text.format.DateFormat.getMediumDateFormat(getApplicationContext());
 
                 // Add user input and the number of queries made to app storage
@@ -168,7 +162,7 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
                 mGoogleApiClient.connect();
             }
 
-            clicked = false; // Button done being clicked
+            clicked = false;
         }
     }
 
@@ -176,32 +170,13 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
         setClipboard(userID.substring(userID.length() - 8));
     }
 
-    private void justClicked() {
-        int limit = 10; // Rate limit in minutes
-        clicked = true; // Button was just clicked
-        recentlyClicked = true;
-
-        new CountDownTimer(limit * 60000, 1000) {
-
-            public void onTick(long millisUntilFinished) {
-                ratelimit = (int)millisUntilFinished / 1000;
-            }
-
-            public void onFinish() {
-                recentlyClicked = false;
-            }
-
-        }.start();
+    private void justClicked(long time) {
+        clicked = true;
+        ph.setTime(time, 10);
     }
 
     private void limitRate() {
-        Calendar c = Calendar.getInstance();
-        c.setTime(new Date());
-        c.add(Calendar.MINUTE, ratelimit / 60);
-        c.add(Calendar.SECOND, ratelimit % 60);
-        c.set(Calendar.AM_PM, Calendar.AM);
-
-        String time = new SimpleDateFormat("HH:mm:ss").format(c.getTime());
+        String time = new SimpleDateFormat("HH:mm:ss").format(ph.getTime());
         Toast.makeText(this, "Try again at " + time, Toast.LENGTH_LONG).show();
 
     }
@@ -241,7 +216,7 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
     private void addDrawerItems() {
         String[] navArray = { "Home", "History" };
-        mAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, navArray);
+        ArrayAdapter<String> mAdapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, navArray);
         mDrawerList.setAdapter(mAdapter);
 
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
@@ -260,14 +235,14 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout,
                 R.string.drawer_open, R.string.drawer_close) {
 
-            /** Called when a drawer has settled in a completely open state. */
+            /* Called when a drawer has settled in a completely open state. */
             public void onDrawerOpened(View drawerView) {
                 super.onDrawerOpened(drawerView);
                 if (getSupportActionBar() != null) getSupportActionBar().setTitle("Options");
                 invalidateOptionsMenu(); // creates call to onPrepareOptionsMenu()
             }
 
-            /** Called when a drawer has settled in a completely closed state. */
+            /* Called when a drawer has settled in a completely closed state. */
             public void onDrawerClosed(View view) {
                 super.onDrawerClosed(view);
                 if (getSupportActionBar() != null) getSupportActionBar().setTitle("Home");
@@ -317,13 +292,11 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     @Override
     protected void onStart() {
         super.onStart();
-        active = true;
         stopService(new Intent(this, BackgroundService.class));
     }
 
     @Override
     protected void onStop() {
-        active = false;
         mGoogleApiClient.disconnect();
         startService(new Intent(this, BackgroundService.class));
         super.onStop();

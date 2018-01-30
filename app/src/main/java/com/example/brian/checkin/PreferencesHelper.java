@@ -31,6 +31,12 @@ class PreferencesHelper {
         editor.commit();
     }
 
+    void setTime(long time, int minutes) {
+        // Add minutes in milliseconds
+        editor.putLong("Time", time + minutes * 60 * 1000);
+        editor.commit();
+    }
+
     void updateQueries() {
         editor.putInt("Queries", getQueries() + 1);
         editor.commit();
@@ -38,6 +44,7 @@ class PreferencesHelper {
 
     void addUserString(String s) {
         editor.putString(Integer.toString(getQueries()), s);
+        editor.commit();
     }
 
     int getQueries() {
@@ -54,6 +61,10 @@ class PreferencesHelper {
             list.add(pref.getString(Integer.toString(i), "missing entry"));
         }
         return list;
+    }
+
+    long getTime() {
+        return pref.getLong("Time", 0);
     }
 
     boolean empty() {

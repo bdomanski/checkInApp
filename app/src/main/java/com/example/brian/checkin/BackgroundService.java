@@ -49,7 +49,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
     private Context context;
 
     private Boolean paused = false;
-    static Boolean started = false;
+    private Boolean stopped = false;
 
     private int consecutiveRestaurants;
 
@@ -115,7 +115,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                 public void onTick(long millisUntilFinished) {}
 
                 public void onFinish() {
-                    if(!LaunchScreen.active) startService(new Intent(context, BackgroundService.class));
+                    if(!stopped) startService(new Intent(context, BackgroundService.class));
                 }
 
             }.start();
@@ -155,20 +155,13 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
         msg.arg1 = startId;
         mServiceHandler.sendMessage(msg);
 
-        if(started) {
-            stopSelf();
-            return START_NOT_STICKY;
-        }
-
-        started = true;
-
         // Runs until explicitly stopped
         return START_STICKY;
     }
 
     @Override
     public void onDestroy() {
-        started = false;
+        stopped = true;
         stopSelf();
         mGoogleApiClient.disconnect();
         super.onDestroy();
@@ -198,7 +191,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
 
         // Check that Google Maps API was told to connect because
         // it was needed for the restaurant check
-        if(paused && !LaunchScreen.active) {
+        if(paused && !stopped) {
             startService(new Intent(context, BackgroundService.class));
             paused = false;
         }
