@@ -1,4 +1,4 @@
-package com.example.brian.checkin;
+package com.app.brian.checkin;
 
 import android.content.Intent;
 import android.content.pm.ActivityInfo;

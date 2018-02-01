@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.brian.checkin">
+    package="com.app.brian.checkin">
 
     <!-- GCM permissions -->
     <uses-permission android:name="com.google.android.c2dm.permission.RECEIVE" />
@@ -30,7 +30,7 @@
             </intent-filter>
         </receiver>
 
-        <activity android:name=".LaunchScreen">
+        <activity android:name="com.app.brian.checkin.LaunchScreen">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
 
@@ -39,7 +39,7 @@
         </activity>
 
         <activity
-            android:name=".HistoryActivity"
+            android:name="com.app.brian.checkin.HistoryActivity"
             android:label="@string/title_activity_history" />
 
         <meta-data
@@ -47,7 +47,7 @@
             android:value="AIzaSyCUlfVi1SsrmMtg7JXE3azmdOd8xpCIFe0" />
 
         <service
-            android:name=".BackgroundService"
+            android:name="com.app.brian.checkin.BackgroundService"
             android:exported="false" />
         package="com.google.android.gms.location.sample.basiclocationsample" >
     </application>

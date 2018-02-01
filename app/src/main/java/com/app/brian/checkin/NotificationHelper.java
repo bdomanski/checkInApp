@@ -1,4 +1,4 @@
-package com.example.brian.checkin;
+package com.app.brian.checkin;
 
 import android.app.NotificationManager;
 import android.app.PendingIntent;

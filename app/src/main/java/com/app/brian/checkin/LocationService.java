@@ -1,4 +1,4 @@
-package com.example.brian.checkin;
+package com.app.brian.checkin;
 
 import android.app.Service;
 import android.content.Context;
@@ -8,8 +8,6 @@ import android.location.Location;
 import android.os.IBinder;
 import android.support.annotation.NonNull;
 import android.support.v4.content.ContextCompat;
-import android.view.animation.AlphaAnimation;
-import android.view.animation.Animation;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -75,9 +73,9 @@ public class LocationService extends Service implements LocationListener {
         context = c;
 
         locationRequest = new LocationRequest();
-        locationRequest.setInterval(10_000);
-        locationRequest.setFastestInterval(5_000);
-        locationRequest.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
+        locationRequest.setInterval(5 * 60 * 1000);
+        locationRequest.setFastestInterval(60 * 1000);
+        locationRequest.setPriority(LocationRequest.PRIORITY_BALANCED_POWER_ACCURACY);
 
         permissions.add(android.Manifest.permission.ACCESS_FINE_LOCATION);
         permissions.add(android.Manifest.permission.ACCESS_COARSE_LOCATION);

@@ -1,4 +1,4 @@
-package com.example.brian.checkin;
+package com.app.brian.checkin;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;

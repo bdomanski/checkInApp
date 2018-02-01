@@ -1,4 +1,4 @@
-package com.example.brian.checkin;
+package com.app.brian.checkin;
 
 import android.app.Service;
 import android.content.Context;
@@ -14,7 +14,6 @@ import android.os.IBinder;
 import android.os.Looper;
 import android.os.Message;
 import android.support.annotation.NonNull;
-import android.util.Log;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.api.GoogleApiClient;
@@ -74,13 +73,11 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                     activeNetwork.isConnectedOrConnecting();
 
             if(mGoogleApiClient.isConnected()) {
-                Log.d("Last Location", places.getLastLocation().toString());
 
                 if(consecutiveRestaurants == 0) {
                     lastLocation = places.getLastLocation();
                 }
                 boolean isRestaurant = places.isCurrentPlaceRestaurant();
-                System.out.println("Is restaurant?: " + isRestaurant);
 
                 if(consecutiveRestaurants == 3) {
                     nh.sendNotification();
@@ -96,11 +93,9 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                     } else {
                         consecutiveRestaurants = 0;
                     }
-                    System.out.println("Consecutive: " + consecutiveRestaurants);
 
                 // else, reset the count
                 } else {
-                    System.out.println("Current speed: " + places.getLastLocation().getSpeed());
                     consecutiveRestaurants = 0;
                 }
             } else if(isConnected){

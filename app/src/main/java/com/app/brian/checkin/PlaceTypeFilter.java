@@ -1,4 +1,4 @@
-package com.example.brian.checkin;
+package com.app.brian.checkin;
 
 import com.google.android.gms.location.places.Place;
 import com.google.android.gms.location.places.PlaceLikelihood;
