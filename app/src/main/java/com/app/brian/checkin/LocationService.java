@@ -121,16 +121,6 @@ public class LocationService extends Service implements LocationListener {
 
                 filterResult = restaurantFilter.filteredPlaces(likelyPlaces);
 
-                // Remove places with 0 chance
-                if(filterResult != null) {
-                    for(int i = 0; i < filterResult.size(); ++i) {
-                        if(filterResult.get(i).getLikelihood() == 0) {
-                            filterResult.remove(i);
-                            --i;
-                        }
-                    }
-                }
-
                 String name;
                 float likelihood;
 
@@ -215,12 +205,6 @@ public class LocationService extends Service implements LocationListener {
 
                 // Remove places with 0 chance
                 if(filterResult != null) {
-                    for(int i = 0; i < filterResult.size(); ++i) {
-                        if(filterResult.get(i).getLikelihood() == 0) {
-                            filterResult.remove(i);
-                            --i;
-                        }
-                    }
 
                     if(likelyPlaces.getCount() > 0 && filterResult.size() > 0) {
                         if(likelyPlaces.get(0).getPlace().getName().equals(filterResult.get(0).getPlace().getName())) {
