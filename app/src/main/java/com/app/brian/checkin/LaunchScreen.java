@@ -12,12 +12,14 @@ import com.google.firebase.database.FirebaseDatabase;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -132,6 +134,15 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
         if(!isConnected()) {
             String string_out = "No internet connection";
+            out.setText(string_out);
+            out.startAnimation(fadeOut);
+            return;
+        }
+
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            String string_out = "App requires location permission";
             out.setText(string_out);
             out.startAnimation(fadeOut);
             return;
