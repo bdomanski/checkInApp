@@ -37,6 +37,19 @@ class PreferencesHelper {
         editor.commit();
     }
 
+    void setLastNotification(long time) {
+        editor.putLong("Last Notification", time);
+        editor.commit();
+    }
+
+    void addNumNotifications() {
+        if(pref.contains("Num Notifications")) {
+            editor.putInt("Num Notifications", 1);
+        } else {
+            editor.putInt("Num Notifications", getNumNotifications() + 1);
+        }
+    }
+
     void updateQueries() {
         editor.putInt("Queries", getQueries() + 1);
         editor.commit();
@@ -66,6 +79,10 @@ class PreferencesHelper {
     long getTime() {
         return pref.getLong("Time", 0);
     }
+
+    long getLastNotification() { return pref.getLong("Last Notification", 0); }
+
+    int getNumNotifications() { return pref.getInt("Num Notifications", 0); }
 
     boolean empty() {
         return !pref.contains("userID");

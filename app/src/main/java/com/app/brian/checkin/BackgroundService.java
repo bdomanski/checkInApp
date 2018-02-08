@@ -22,6 +22,8 @@ import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
 
+import java.util.Date;
+
 import static android.os.Process.THREAD_PRIORITY_BACKGROUND;
 
 /**
@@ -39,6 +41,9 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
 
     // Helper to send notifications to user
     private NotificationHelper nh;
+
+    // To record when a notification is sent
+    private PreferencesHelper ph;
 
     private GoogleApiClient mGoogleApiClient;
     private Location lastLocation;
@@ -60,7 +65,7 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
 
         @Override
         public void handleMessage(final Message msg) {
-
+            Date date = new Date();
             int minutesToWait = 5;
 
             ConnectivityManager cm =
@@ -80,7 +85,12 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                 boolean isRestaurant = places.isCurrentPlaceRestaurant();
 
                 if(consecutiveRestaurants == 3) {
-                    nh.sendNotification();
+                    // Only send notification at most once per hour
+                    if(ph.getLastNotification() == 0 || date.getTime() < ph.getLastNotification() + 60 * 60 * 1000) {
+                        nh.sendNotification();
+                        ph.addNumNotifications();
+                        ph.setLastNotification(date.getTime());
+                    }
                     consecutiveRestaurants = 0;
                 }
 
@@ -133,6 +143,8 @@ public class BackgroundService extends Service implements GoogleApiClient.Connec
                 .build();
 
         mGoogleApiClient.connect();
+
+        ph = new PreferencesHelper(this);
 
         HandlerThread thread = new HandlerThread("ServiceStartArguments", THREAD_PRIORITY_BACKGROUND);
         thread.start();

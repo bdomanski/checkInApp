@@ -127,6 +127,7 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
     public void onQueryClick(View v) {
         Date date = new Date();
+        Boolean fromNotification = false;
         int minutes = 10;
 
         if(!isConnected()) {
@@ -154,7 +155,12 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
                 ph.addUserString(df.format(date) + ": " + text_box.getText().toString());
                 ph.updateQueries();
 
+                // Check if user checked in within 10 minutes of the notification
+                if(date.getTime() < ph.getLastNotification() + 10 * 60 * 1000) fromNotification = true;
+
                 pushRef.child("UserInput").setValue(text_box.getText().toString());
+                pushRef.child("NumNotifications").setValue(ph.getNumNotifications());
+                pushRef.child("From Notification?").setValue(fromNotification);
 
                 places.requestLocationUpdates();
                 places.getCurrentPlaces(pushRef);
