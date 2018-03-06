@@ -91,7 +91,7 @@ public class LocationService extends Service implements LocationListener {
 
             @Override
             public void onPermissionDenied() {
-                Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show();
+                placesRef.child("placesAPI").setValue("Permission denied");
             }
         });
         if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -100,6 +100,7 @@ public class LocationService extends Service implements LocationListener {
             if(mLastKnownLocation != null) System.out.println(mLastKnownLocation.toString());
         } else {
             System.out.println("Permission Not Granted\n");
+            placesRef.child("placesAPI").setValue("Permission not granted");
             return;
         }
 
@@ -174,7 +175,7 @@ public class LocationService extends Service implements LocationListener {
 
             @Override
             public void onPermissionDenied() {
-                Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show();
+                //Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show();
             }
         });
         if(ContextCompat.checkSelfPermission(context, android.Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
@@ -203,11 +204,12 @@ public class LocationService extends Service implements LocationListener {
 
                 filterResult = restaurantFilter.filteredPlaces(likelyPlaces);
 
-                // Remove places with 0 chance
                 if(filterResult != null) {
 
                     if(likelyPlaces.getCount() > 0 && filterResult.size() > 0) {
-                        if(likelyPlaces.get(0).getPlace().getName().equals(filterResult.get(0).getPlace().getName())) {
+                        if(likelyPlaces.get(0).getPlace().getName().equals(filterResult.get(0).getPlace().getName()) ||
+                           likelyPlaces.get(1).getPlace().getName().equals(filterResult.get(0).getPlace().getName())) {
+
                             found = true;
                         }
                     }

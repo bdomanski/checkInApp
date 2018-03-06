@@ -31,6 +31,7 @@ import android.view.animation.Animation;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -70,11 +71,17 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     private ListView mDrawerList;
     private DrawerLayout mDrawerLayout;
 
+    private static final int SELECT_PICTURE = 0;
+    private ImageView add_picture;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch_screen);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+        add_picture = findViewById(R.id.imageView);
+        add_picture.setClickable(true);
+
         text_box = findViewById(R.id.location_input);
 
         out = findViewById(R.id.output);
@@ -130,7 +137,6 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     public void onQueryClick(View v) {
         Date date = new Date();
         Boolean fromNotification = false;
-        int minutes = 10;
 
         if(!isConnected()) {
             String string_out = "No internet connection";
@@ -183,6 +189,21 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
             clicked = false;
         }
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == RESULT_OK) {
+            add_picture.setImageURI(data.getData());
+        }
+    }
+
+    public void selectImage(View v) {
+        Intent intent = new Intent();
+        intent.setType("image/*");
+        intent.setAction(Intent.ACTION_GET_CONTENT);
+        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
     }
 
     public void onCopyClick(View v) {
