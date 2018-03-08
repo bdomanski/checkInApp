@@ -14,15 +14,22 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
+import android.net.Uri;
+import android.os.Environment;
+import android.os.StrictMode;
+import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -36,6 +43,7 @@ import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.io.File;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -71,14 +79,20 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     private ListView mDrawerList;
     private DrawerLayout mDrawerLayout;
 
-    private static final int SELECT_PICTURE = 0;
+    private static final int CAMERA_REQUEST = 1;
     private ImageView add_picture;
+    Uri cameraImageUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_launch_screen);
         setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
+
+        // Disable file URI exposure
+        StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
+        StrictMode.setVmPolicy(builder.build());
+
         add_picture = findViewById(R.id.imageView);
         add_picture.setClickable(true);
 
@@ -154,6 +168,14 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
             return;
         }
 
+        // Empty string as input
+        if(text_box.getText().toString().equals("")) {
+            String string_out = "Please enter a location";
+            out.setText(string_out);
+            out.startAnimation(fadeOut);
+            return;
+        }
+
         if(date.getTime() < ph.getTime()) {
             limitRate();
 
@@ -195,15 +217,46 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         if (resultCode == RESULT_OK) {
-            add_picture.setImageURI(data.getData());
+            switch(requestCode) {
+                case CAMERA_REQUEST:
+                    Toast.makeText(this, "Picture taken!", Toast.LENGTH_LONG);
+                    //Bitmap myBitmap = BitmapFactory.decodeFile(cameraImageUri.getPath());
+                    Bitmap photo = (Bitmap) data.getExtras().get("data");
+                    add_picture.setImageBitmap(photo);
+                    //add_picture.setImageBitmap(myBitmap);
+                    //add_picture.setImageURI(cameraImageUri);
+            }
         }
     }
 
     public void selectImage(View v) {
-        Intent intent = new Intent();
-        intent.setType("image/*");
-        intent.setAction(Intent.ACTION_GET_CONTENT);
-        startActivityForResult(Intent.createChooser(intent, "Select Picture"), SELECT_PICTURE);
+        Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraImageUri = getOutputMediaFileUri(1);
+        setResult(RESULT_OK, camera_intent);
+        startActivityForResult(camera_intent, CAMERA_REQUEST);
+    }
+    private Uri getOutputMediaFileUri(int type) {
+        return Uri.fromFile(getOutputMediaFile(type));
+    }
+
+    private File getOutputMediaFile(int type) {
+
+        // Check that the SDCard is mounted
+        File mediaStorageDir = new File(Environment.getExternalStorageDirectory(), Environment.DIRECTORY_PICTURES);
+
+        // Create the storage directory(MyCameraVideo) if it does not exist
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
+                Log.e("Item Attachment","Failed to create directory MyCameraVideo.");
+                return null;
+            }
+        }
+
+        File mediaFile;
+        String name = "check_in" + Integer.toString(ph.getQueries());
+        mediaFile = (type == 1) ? new File(mediaStorageDir.getPath() + File.separator + name + ".jpg") : null;
+
+        return mediaFile;
     }
 
     public void onCopyClick(View v) {

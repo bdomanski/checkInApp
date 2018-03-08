@@ -7,84 +7,90 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:layout_marginLeft="50dp"
-        android:layout_marginRight="50dp"
-        android:layout_marginTop="25dp"
-        tools:context="com.app.brian.checkin.LaunchScreen">
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
-        <EditText
-            android:id="@+id/location_input"
-            android:layout_width="match_parent"
-            android:layout_height="64dp"
-            android:layout_gravity="center"
-            android:layout_weight="0"
-            android:hint="@string/restaurant_hint"
-            android:textSize="18sp" />
-
-        <ImageView
-            android:id="@+id/imageView"
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="0"
-            app:srcCompat="@android:drawable/ic_input_add"
-            android:onClick="selectImage" />
+            android:layout_marginLeft="50dp"
+            android:layout_marginRight="50dp"
+            android:layout_marginTop="25dp"
+            android:paddingBottom="50dp"
+            android:orientation="vertical"
+            tools:context="com.app.brian.checkin.LaunchScreen">
 
-        <Button
-            android:id="@+id/btn_query"
-            android:layout_width="164dp"
-            android:layout_height="60dp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="8dp"
-            android:layout_weight="0"
-            android:onClick="onQueryClick"
-            android:text="@string/query"
-            android:textAppearance="@style/TextAppearance.AppCompat.Button" />
+            <EditText
+                android:id="@+id/location_input"
+                android:layout_width="match_parent"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:layout_weight="0"
+                android:hint="@string/restaurant_hint"
+                android:textSize="18sp" />
 
-        <TextView
-            android:id="@+id/output"
-            android:layout_width="match_parent"
-            android:layout_height="128dp"
-            android:layout_gravity="center"
-            android:layout_marginBottom="8dp"
-            android:layout_weight="0"
-            android:gravity="center"
-            android:textSize="18sp" />
+            <ImageView
+                android:id="@+id/imageView"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_weight="0"
+                android:onClick="selectImage"
+                app:srcCompat="@android:drawable/ic_input_add" />
 
-        <TextView
-            android:id="@+id/uniqueKey"
-            android:layout_width="match_parent"
-            android:layout_height="38dp"
-            android:layout_gravity="center"
-            android:layout_weight="0"
-            android:text="@string/unique_key"
-            android:textAlignment="center"
-            android:textSize="18sp" />
+            <Button
+                android:id="@+id/btn_query"
+                android:layout_width="164dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="8dp"
+                android:layout_weight="0"
+                android:onClick="onQueryClick"
+                android:text="@string/query"
+                android:textAppearance="@style/TextAppearance.AppCompat.Button" />
 
-        <TextView
-            android:id="@+id/keyOut"
-            android:layout_width="306dp"
-            android:layout_height="64dp"
-            android:layout_gravity="center"
-            android:layout_weight="0"
-            android:text=""
-            android:textAlignment="center"
-            android:textSize="18sp"
-            android:textStyle="bold" />
+            <TextView
+                android:id="@+id/output"
+                android:layout_width="match_parent"
+                android:layout_height="128dp"
+                android:layout_gravity="center"
+                android:layout_marginBottom="8dp"
+                android:layout_weight="0"
+                android:gravity="center"
+                android:textSize="18sp" />
 
-        <Button
-            android:id="@+id/btn_copy"
-            android:layout_width="164dp"
-            android:layout_height="60dp"
-            android:layout_gravity="center"
-            android:layout_weight="0"
-            android:onClick="onCopyClick"
-            android:text="@string/copy" />
+            <TextView
+                android:id="@+id/uniqueKey"
+                android:layout_width="match_parent"
+                android:layout_height="38dp"
+                android:layout_gravity="center"
+                android:layout_weight="0"
+                android:text="@string/unique_key"
+                android:textAlignment="center"
+                android:textSize="18sp" />
 
-    </LinearLayout>
+            <TextView
+                android:id="@+id/keyOut"
+                android:layout_width="306dp"
+                android:layout_height="64dp"
+                android:layout_gravity="center"
+                android:layout_weight="0"
+                android:text=""
+                android:textAlignment="center"
+                android:textSize="18sp"
+                android:textStyle="bold" />
+
+            <Button
+                android:id="@+id/btn_copy"
+                android:layout_width="164dp"
+                android:layout_height="60dp"
+                android:layout_gravity="center"
+                android:layout_weight="0"
+                android:onClick="onCopyClick"
+                android:text="@string/copy" />
+
+        </LinearLayout>
+    </ScrollView>
 
     <ListView
         android:id="@+id/navList"
