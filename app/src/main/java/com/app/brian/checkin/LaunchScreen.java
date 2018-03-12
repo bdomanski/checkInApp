@@ -6,8 +6,13 @@ import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.LocationListener;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.location.places.Places;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import android.content.Context;
 import android.content.Intent;
@@ -44,6 +49,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -56,9 +63,14 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
     private GoogleApiClient mGoogleApiClient;
 
-    // Reference to Firebase Database
+    // References to Firebase Database and Storage
     private FirebaseDatabase database = FirebaseDatabase.getInstance();
     private DatabaseReference userRef;
+    private FirebaseStorage storage = FirebaseStorage.getInstance();
+    private StorageReference storageRef = storage.getReference();
+
+    // Image to be taken with check in
+    private File mediaFile = null;
 
     // Calls places API
     private LocationService places;
@@ -152,35 +164,12 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
         Date date = new Date();
         Boolean fromNotification = false;
 
-        if(!isConnected()) {
-            String string_out = "No internet connection";
-            out.setText(string_out);
-            out.startAnimation(fadeOut);
-            return;
-        }
-
-        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
-                != PackageManager.PERMISSION_GRANTED) {
-
-            String string_out = "App requires location permission";
-            out.setText(string_out);
-            out.startAnimation(fadeOut);
-            return;
-        }
-
-        // Empty string as input
-        if(text_box.getText().toString().equals("")) {
-            String string_out = "Please enter a location";
-            out.setText(string_out);
-            out.startAnimation(fadeOut);
-            return;
-        }
+        if(!checkValidCheckIn()) return;
 
         if(date.getTime() < ph.getTime()) {
             limitRate();
 
         } else {
-            justClicked(date.getTime());
 
             if(mGoogleApiClient.isConnected()) {
                 database.goOnline();
@@ -201,6 +190,15 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
                 pushRef.child("NumNotifications").setValue(ph.getNumNotifications());
                 pushRef.child("From Notification?").setValue(fromNotification);
 
+                try {
+                    uploadFile();
+                } catch(java.io.FileNotFoundException e) {
+                    String string_out = "File not found";
+                    out.setText(string_out);
+                    out.startAnimation(fadeOut);
+                    return;
+                }
+
                 places.requestLocationUpdates();
                 places.getCurrentPlaces(pushRef);
                 out.startAnimation(fadeOut);
@@ -210,6 +208,7 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
             }
 
             clicked = false;
+            justClicked(date.getTime());
         }
     }
 
@@ -219,7 +218,6 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
         if (resultCode == RESULT_OK) {
             switch(requestCode) {
                 case CAMERA_REQUEST:
-                    Toast.makeText(this, "Picture taken!", Toast.LENGTH_LONG);
                     //Bitmap myBitmap = BitmapFactory.decodeFile(cameraImageUri.getPath());
                     Bitmap photo = (Bitmap) data.getExtras().get("data");
                     add_picture.setImageBitmap(photo);
@@ -252,8 +250,7 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
             }
         }
 
-        File mediaFile;
-        String name = "check_in" + Integer.toString(ph.getQueries());
+        String name = "check_in_" + Integer.toString(ph.getQueries());
         mediaFile = (type == 1) ? new File(mediaStorageDir.getPath() + File.separator + name + ".jpg") : null;
 
         return mediaFile;
@@ -345,6 +342,59 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
         mDrawerToggle.setDrawerIndicatorEnabled(true);
         mDrawerLayout.addDrawerListener(mDrawerToggle);
+    }
+
+    Boolean checkValidCheckIn() {
+
+        if(!isConnected()) {
+            String string_out = "No internet connection";
+            out.setText(string_out);
+            out.startAnimation(fadeOut);
+            return false;
+        }
+
+        if(ContextCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION)
+                != PackageManager.PERMISSION_GRANTED) {
+
+            String string_out = "App requires location permission";
+            out.setText(string_out);
+            out.startAnimation(fadeOut);
+            return false;
+        }
+
+        // Empty string as input
+        if(text_box.getText().toString().equals("")) {
+            String string_out = "Please enter a location";
+            out.setText(string_out);
+            out.startAnimation(fadeOut);
+            return false;
+        }
+
+        // User must include picture
+        if(mediaFile == null) {
+            String string_out = "Please include a picture";
+            out.setText(string_out);
+            out.startAnimation(fadeOut);
+            return false;
+        }
+        return true;
+    }
+
+    void uploadFile() throws java.io.FileNotFoundException {
+
+        InputStream stream;
+        stream = new FileInputStream(mediaFile);
+        StorageReference picRef = storageRef.child(userID + "/check_in_" + Integer.toString(ph.getQueries()) + ".jpg");
+        UploadTask uploadTask = picRef.putStream(stream);
+        uploadTask.addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                Toast.makeText(getApplicationContext(), "Picture could not upload", Toast.LENGTH_LONG).show();
+            }
+        }).addOnSuccessListener(new OnSuccessListener<UploadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(UploadTask.TaskSnapshot taskSnapshot) {}
+        });
     }
 
     @Override
