@@ -13,14 +13,15 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.intentfilter.androidpermissions.PermissionManager;
 
+import android.Manifest;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.location.Location;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -31,6 +32,7 @@ import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.os.Bundle;
 import android.support.v4.content.ContextCompat;
+import android.support.v4.content.FileProvider;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
@@ -49,10 +51,10 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import java.io.File;
-import java.io.FileInputStream;
-import java.io.InputStream;
+import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
 
 public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.ConnectionCallbacks,
@@ -70,7 +72,7 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     private StorageReference storageRef = storage.getReference();
 
     // Image to be taken with check in
-    private File mediaFile = null;
+    private String mediaFile = null;
 
     // Calls places API
     private LocationService places;
@@ -93,7 +95,7 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
     private static final int CAMERA_REQUEST = 1;
     private ImageView add_picture;
-    Uri cameraImageUri;
+    private Uri photoUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -104,6 +106,21 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
         // Disable file URI exposure
         StrictMode.VmPolicy.Builder builder = new StrictMode.VmPolicy.Builder();
         StrictMode.setVmPolicy(builder.build());
+
+        PermissionManager permissionManager = PermissionManager.getInstance(this);
+        ArrayList<String> permissions = new ArrayList<>();
+        permissions.add(Manifest.permission.CAMERA);
+        permissionManager.checkPermissions(permissions, new PermissionManager.PermissionRequestListener() {
+            @Override
+            public void onPermissionGranted() {
+                //Toast.makeText(context,"Permission Granted",Toast.LENGTH_SHORT).show();
+            }
+
+            @Override
+            public void onPermissionDenied() {
+                //Toast.makeText(context, "Permission Denied", Toast.LENGTH_SHORT).show();
+            }
+        });
 
         add_picture = findViewById(R.id.imageView);
         add_picture.setClickable(true);
@@ -179,6 +196,21 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
                 DateFormat df = android.text.format.DateFormat.getMediumDateFormat(getApplicationContext());
 
+                try {
+                    uploadFile();
+                } catch(java.io.FileNotFoundException e) {
+                    String string_out = "File not found";
+                    out.setText(string_out);
+                    out.startAnimation(fadeOut);
+                    return;
+                }
+
+                // Reset file so user must take another
+                mediaFile = null;
+
+                places.requestLocationUpdates();
+                places.getCurrentPlaces(pushRef);
+
                 // Add user input and the number of queries made to app storage
                 ph.addUserString(df.format(date) + ": " + text_box.getText().toString());
                 ph.updateQueries();
@@ -189,18 +221,8 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
                 pushRef.child("UserInput").setValue(text_box.getText().toString());
                 pushRef.child("NumNotifications").setValue(ph.getNumNotifications());
                 pushRef.child("From Notification?").setValue(fromNotification);
+                justClicked(date.getTime());
 
-                try {
-                    uploadFile();
-                } catch(java.io.FileNotFoundException e) {
-                    String string_out = "File not found";
-                    out.setText(string_out);
-                    out.startAnimation(fadeOut);
-                    return;
-                }
-
-                places.requestLocationUpdates();
-                places.getCurrentPlaces(pushRef);
                 out.startAnimation(fadeOut);
             } else {
                 // onQueryClick() will be called again in onConnected()
@@ -208,52 +230,56 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
             }
 
             clicked = false;
-            justClicked(date.getTime());
         }
     }
 
     @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
-        if (resultCode == RESULT_OK) {
-            switch(requestCode) {
-                case CAMERA_REQUEST:
-                    //Bitmap myBitmap = BitmapFactory.decodeFile(cameraImageUri.getPath());
-                    Bitmap photo = (Bitmap) data.getExtras().get("data");
-                    add_picture.setImageBitmap(photo);
-                    //add_picture.setImageBitmap(myBitmap);
-                    //add_picture.setImageURI(cameraImageUri);
+        if (resultCode == RESULT_OK && requestCode == CAMERA_REQUEST) {
+            try {
+                Bitmap photo = MediaStore.Images.Media.getBitmap(this.getContentResolver(), photoUri);
+                add_picture.setImageBitmap(photo);
+            } catch(java.io.IOException e) {
+                Toast.makeText(this, "Failed to get photo", Toast.LENGTH_LONG);
             }
         }
     }
 
     public void selectImage(View v) {
         Intent camera_intent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-        cameraImageUri = getOutputMediaFileUri(1);
-        setResult(RESULT_OK, camera_intent);
-        startActivityForResult(camera_intent, CAMERA_REQUEST);
-    }
-    private Uri getOutputMediaFileUri(int type) {
-        return Uri.fromFile(getOutputMediaFile(type));
-    }
-
-    private File getOutputMediaFile(int type) {
-
-        // Check that the SDCard is mounted
-        File mediaStorageDir = new File(Environment.getExternalStorageDirectory(), Environment.DIRECTORY_PICTURES);
-
-        // Create the storage directory(MyCameraVideo) if it does not exist
-        if (!mediaStorageDir.exists()) {
-            if (!mediaStorageDir.mkdirs()) {
-                Log.e("Item Attachment","Failed to create directory MyCameraVideo.");
-                return null;
+        if (camera_intent.resolveActivity(getPackageManager()) != null) {
+            // Create the File where the photo should go
+            File photoFile = null;
+            try {
+                photoFile = createImageFile();
+            } catch (IOException e) {
+                System.out.println("Error creating file");
+            }
+            // Continue only if the File was successfully created
+            if (photoFile != null) {
+                photoUri = FileProvider.getUriForFile(this,
+                        "com.app.brian.fileprovider",
+                        photoFile);
+                camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
+                startActivityForResult(camera_intent, CAMERA_REQUEST);
             }
         }
+    }
 
-        String name = "check_in_" + Integer.toString(ph.getQueries());
-        mediaFile = (type == 1) ? new File(mediaStorageDir.getPath() + File.separator + name + ".jpg") : null;
+    private File createImageFile() throws IOException {
+        // Create an image file name
+        String imageFileName = "check_in_" + ph.getQueries();
+        File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
+        File image = File.createTempFile(
+                imageFileName,  /* prefix */
+                ".jpg",         /* suffix */
+                storageDir      /* directory */
+        );
 
-        return mediaFile;
+        // Save a file: path for use with ACTION_VIEW intents
+        mediaFile = image.getAbsolutePath();
+        return image;
     }
 
     public void onCopyClick(View v) {
@@ -381,11 +407,9 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
     }
 
     void uploadFile() throws java.io.FileNotFoundException {
-
-        InputStream stream;
-        stream = new FileInputStream(mediaFile);
         StorageReference picRef = storageRef.child(userID + "/check_in_" + Integer.toString(ph.getQueries()) + ".jpg");
-        UploadTask uploadTask = picRef.putStream(stream);
+        Uri file = Uri.fromFile(new File(mediaFile));
+        UploadTask uploadTask = picRef.putFile(file);
         uploadTask.addOnFailureListener(new OnFailureListener() {
             @Override
             public void onFailure(@NonNull Exception exception) {

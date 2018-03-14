@@ -205,10 +205,15 @@ public class LocationService extends Service implements LocationListener {
                 filterResult = restaurantFilter.filteredPlaces(likelyPlaces);
 
                 if(filterResult != null) {
+                    Location loc = new Location("current");
 
                     if(likelyPlaces.getCount() > 0 && filterResult.size() > 0) {
-                        if(likelyPlaces.get(0).getPlace().getName().equals(filterResult.get(0).getPlace().getName()) ||
-                           likelyPlaces.get(1).getPlace().getName().equals(filterResult.get(0).getPlace().getName())) {
+                        PlaceLikelihood curr_place = filterResult.get(0);
+                        loc.setLatitude(curr_place.getPlace().getLatLng().latitude);
+                        loc.setLongitude(curr_place.getPlace().getLatLng().longitude);
+                        if(likelyPlaces.get(0).getPlace().getName().equals(curr_place.getPlace().getName()) ||
+                           likelyPlaces.get(1).getPlace().getName().equals(curr_place.getPlace().getName()) ||
+                           mLastKnownLocation.distanceTo(loc) < 25) {
 
                             found = true;
                         }
