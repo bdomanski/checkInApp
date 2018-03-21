@@ -239,7 +239,9 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
         if (resultCode == RESULT_OK && requestCode == CAMERA_REQUEST) {
             try {
                 Bitmap photo = MediaStore.Images.Media.getBitmap(this.getContentResolver(), photoUri);
-                add_picture.setImageBitmap(photo);
+                Bitmap photo2 = (Bitmap) data.getExtras().get("data");
+                //add_picture.setImageBitmap(photo);
+                add_picture.setImageBitmap(photo2);
             } catch(java.io.IOException e) {
                 Toast.makeText(this, "Failed to get photo", Toast.LENGTH_LONG);
             }
@@ -261,7 +263,6 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
                 photoUri = FileProvider.getUriForFile(this,
                         "com.app.brian.fileprovider",
                         photoFile);
-                camera_intent.putExtra(MediaStore.EXTRA_OUTPUT, photoUri);
                 startActivityForResult(camera_intent, CAMERA_REQUEST);
             }
         }
@@ -269,13 +270,16 @@ public class LaunchScreen extends AppCompatActivity implements GoogleApiClient.C
 
     private File createImageFile() throws IOException {
         // Create an image file name
-        String imageFileName = "check_in_" + ph.getQueries();
+        String imageFileName = "check_in_" + Integer.toString(ph.getQueries());
+        System.err.println(ph.getQueries());
+        System.err.println(imageFileName);
         File storageDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES);
         File image = File.createTempFile(
                 imageFileName,  /* prefix */
                 ".jpg",         /* suffix */
                 storageDir      /* directory */
         );
+        System.err.println(image.toString());
 
         // Save a file: path for use with ACTION_VIEW intents
         mediaFile = image.getAbsolutePath();

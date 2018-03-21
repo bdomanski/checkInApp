@@ -10,7 +10,7 @@
       "client_info": {
         "mobilesdk_app_id": "1:795473123899:android:c58614b9f8826a88",
         "android_client_info": {
-          "package_name": "com.app.brian.checkin"
+          "package_name": "com.app.brian.checkin.debug"
         }
       },
       "oauth_client": [
