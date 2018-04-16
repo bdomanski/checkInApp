@@ -104,6 +104,9 @@ public class LocationService extends Service implements LocationListener {
             return;
         }
 
+        placesRef.child("placesAPI").setValue("Failed for unknown reason");
+        final CountDownLatch latch = new CountDownLatch(1);
+
         PendingResult<PlaceLikelihoodBuffer> placeResult = Places.PlaceDetectionApi
                 .getCurrentPlace(mGoogleApiClient, null);
 
@@ -153,6 +156,7 @@ public class LocationService extends Service implements LocationListener {
                         System.out.println(placeLikelihood.getLikelihood());
                     }
                 }
+                latch.countDown();
 
                 output.setText("Data successfully sent!\n\n");
 
@@ -163,6 +167,12 @@ public class LocationService extends Service implements LocationListener {
                 likelyPlaces.release();
             }
         });
+
+        try {
+            latch.await();
+        } catch (InterruptedException e) {
+            System.err.println("Latch interrupted");
+        }
     }
 
     public Boolean isCurrentPlaceRestaurant() {
